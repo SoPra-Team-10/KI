@@ -6,7 +6,18 @@
 #define VERBOSE_DEFAULT 0
 
 void showHelp(){
-
+    std::cout << "Usage:\n\n"
+    << "Mandatory options:\n"
+    << "\t -a/--address: The address to the game server\n"
+    << "\t -t/--team: Path to the team configuration file\n"
+    << "\t -l/--lobby: Name of the desired lobby\n\n"
+    << "Optional options:\n"
+    << "\t -u/--username: Username of the AI player\n"
+    << "\t -k/--password: Password of the AI player\n"
+    << "\t -p/--port: Port to connect to\n"
+    << "\t -d/--difficulty: Strength of the AI Player. Choose between 0 (maximum difficulty) and 2\n"
+    << "\t -v/--verbosity: Displays additional information (0 = none, 1 = error level, 2 = warn level, 3 = info level, 4 = debug level)"
+    << std::endl;
 }
 
 int main(int argc, char** argv) {
