@@ -1,5 +1,6 @@
 #include <iostream>
 #include <getopt.h>
+#include <optional>
 
 #define PORT_DEFAULT 4488
 #define DIFFICULTY_DEFAULT 1
@@ -33,7 +34,7 @@ int main(int argc, char** argv) {
     int difficulty = DIFFICULTY_DEFAULT;
     int verbosity = VERBOSE_DEFAULT;
 
-    struct option options[] = {
+    struct option longopts[] = {
             {"address", required_argument, nullptr, 'a'},
             {"team", required_argument, nullptr, 't'},
             {"lobby", required_argument, nullptr, 'l'},
@@ -42,20 +43,28 @@ int main(int argc, char** argv) {
             {"port", required_argument, nullptr, 'p'},
             {"difficulty", required_argument, nullptr, 'd'},
             {"verbosity", required_argument, nullptr, 'v'},
+            {}
     };
 
     int c = 0;
     int optionIndex = -1;
 
-    auto parse = [options](int* target, char option){
+    auto parse = [](int* target, const std::string &optName){
         try {
             *target = std::stoi(optarg);
         }catch (std::invalid_argument &e){
-            std::cerr << "Invalid argument for option '" << option << "', integer required!\n" << e.what() << std::endl;
+            std::cerr << "Invalid argument for option '" << optName << "', integer required!\n" << e.what() << std::endl;
         }
     };
 
-    while((c = getopt_long(argc, argv, "a:t:l:u:p:k:d:v:h", options, &optionIndex)) != -1){
+    while((c = getopt_long(argc, argv, "a:t:l:u:p:k:d:v:h", longopts, &optionIndex)) != -1){
+        std::string optionName;
+        if(optionIndex == -1){
+            optionName = static_cast<char>(c);
+        } else {
+            optionName = longopts[optionIndex].name;
+        }
+
         switch(c){
             case 0:
                 //Flag was set by getopt, do nothing
@@ -76,13 +85,13 @@ int main(int argc, char** argv) {
                 pw = optarg;
                 break;
             case 'p':
-                parse(&port, c);
+                parse(&port, optionName);
                 break;
             case 'd':
-                parse(&difficulty, c);
+                parse(&difficulty, optionName);
                 break;
             case 'v':
-                parse(&verbosity, c);
+                parse(&verbosity, optionName);
                 break;
             case 'h':
                 showHelp();
@@ -94,6 +103,8 @@ int main(int argc, char** argv) {
                 std::cerr << "Error parsing cli parameters" << std::endl;
                 return -1;
         }
+
+        optionIndex = -1;
     }
 
     if(address.empty()){
