@@ -5,6 +5,9 @@
 #define DIFFICULTY_DEFAULT 1
 #define VERBOSE_DEFAULT 0
 
+/**
+ * Prints the usage of cli parameters to stdout
+ */
 void showHelp(){
     std::cout << "Usage:\n\n"
     << "Mandatory options:\n"
