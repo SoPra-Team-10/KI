@@ -52,9 +52,9 @@ namespace util {
         std::string lobbyName;
         std::string uName;
         std::string pw;
-        int port;
-        int difficulty;
-        int verbosity;
+        uint port{};
+        unsigned int difficulty{};
+        unsigned int verbosity{};
     };
 }
 

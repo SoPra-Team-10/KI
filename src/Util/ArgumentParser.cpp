@@ -14,8 +14,7 @@
 #define VERBOSE_DEFAULT 0
 
 namespace util {
-    ArgumentParser::ArgumentParser(int argc, char **argv) : port{PORT_DEFAULT}, difficulty{DIFFICULTY_DEFAULT},
-        verbosity{VERBOSE_DEFAULT} {
+    ArgumentParser::ArgumentParser(int argc, char **argv) {
         if (argc <= 1) {
             printHelp();
             std::exit(1);
@@ -44,6 +43,7 @@ namespace util {
             }
         };
 
+        int initialPort = PORT_DEFAULT, initialDifficulty = DIFFICULTY_DEFAULT, initialVerbosity = VERBOSE_DEFAULT;
         while((c = getopt_long(argc, argv, "a:t:l:u:p:k:d:v:h", longopts, &optionIndex)) != -1){
             std::string optionName;
             if(optionIndex == -1){
@@ -72,39 +72,53 @@ namespace util {
                     pw = optarg;
                     break;
                 case 'p':
-                    parse(&port, optionName);
+                    parse(&initialPort, optionName);
                     break;
                 case 'd':
-                    parse(&difficulty, optionName);
+                    parse(&initialDifficulty, optionName);
                     break;
                 case 'v':
-                    parse(&verbosity, optionName);
+                    parse(&initialVerbosity, optionName);
                     break;
                 case 'h':
                     printHelp();
                     std::exit(1);
                 default:
-                    std::cerr << "Error parsing cli parameters" << std::endl;
-                    std::exit(1);
+                    throw std::invalid_argument{"Error parsing cli parameters"};
             }
 
             optionIndex = -1;
         }
 
         if(address.empty()){
-            std::cerr << "Missing mandatory option 'address'. Please specify the address to the game server." << std::endl;
-            std::exit(1);
+            throw std::invalid_argument{
+                "Missing mandatory option 'address'. Please specify the address to the game server."};
         }
 
         if(configPath.empty()){
-            std::cerr << "Missing mandatory option 'team'. Please specify the path to a valid team configuration file." << std::endl;
-            std::exit(1);
+            throw std::invalid_argument{
+                "Missing mandatory option 'team'. Please specify the path to a valid team configuration file."};
         }
 
         if(lobbyName.empty()){
-            std::cerr << "Missing mandatory option 'lobby'. Please specify the name of a lobby." << std::endl;
-            std::exit(1);
+            throw std::invalid_argument{"Missing mandatory option 'lobby'. Please specify the name of a lobby."};
         }
+
+        if (initialPort < 0 || initialPort > 65535) {
+            throw std::invalid_argument{"Port is not a valid port"};
+        }
+
+        if (initialDifficulty < 0) {
+            throw std::invalid_argument{"Difficulty needs to be none negative"};
+        }
+
+        if (initialVerbosity < 0) {
+            throw std::invalid_argument{"Verbosity needs to be none negative"};
+        }
+
+        port = static_cast<uint16_t>(initialPort);
+        difficulty = static_cast<unsigned int>(initialDifficulty);
+        verbosity = static_cast<unsigned int>(initialVerbosity);
     }
 
     void ArgumentParser::printHelp() {
