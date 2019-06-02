@@ -1,6 +1,7 @@
 #include <Util/ArgumentParser.hpp>
 #include <iostream>
 #include <Util/Logging.hpp>
+#include <Communication/MessageHandler.hpp>
 
 int main(int argc, char** argv) {
     std::string address;
@@ -9,7 +10,7 @@ int main(int argc, char** argv) {
     std::string uName;
     std::string pw;
     uint16_t port;
-    unsigned int difficulty;
+//    unsigned int difficulty;
     unsigned int verbosity;
 
     try {
@@ -20,7 +21,7 @@ int main(int argc, char** argv) {
         uName = argumentParser.getUName();
         pw = argumentParser.getPw();
         port = argumentParser.getPort();
-        difficulty = argumentParser.getDifficulty();
+       // difficulty = argumentParser.getDifficulty();
         verbosity = argumentParser.getVerbosity();
     } catch (std::invalid_argument &e) {
         std::cerr << e.what() << std::endl;
@@ -28,6 +29,7 @@ int main(int argc, char** argv) {
     }
 
     util::Logging log{std::cout, verbosity};
+    communication::MessageHandler messageHandler{address, port, log};
 
     return 0;
 }
