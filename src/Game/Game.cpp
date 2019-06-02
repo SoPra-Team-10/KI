@@ -6,3 +6,25 @@
  */
 
 #include "Game.hpp"
+
+Game::Game(unsigned int ) {
+
+}
+
+auto Game::getTeamFormation() -> communication::messages::request::TeamFormation {
+    return {};
+}
+
+void Game::onSnapshot(const communication::messages::broadcast::Snapshot &) {
+
+}
+
+auto Game::getNextAction(const communication::messages::broadcast::Next &)
+    -> communication::messages::request::DeltaRequest {
+    return communication::messages::request::DeltaRequest();
+}
+
+void Game::setMatchStart(const communication::messages::broadcast::MatchStart &) {
+
+}
+

@@ -4,6 +4,7 @@
 #include <Communication/MessageHandler.hpp>
 #include <filesystem>
 #include <fstream>
+#include <Communication/Communicator.hpp>
 
 int main(int argc, char** argv) {
     std::string address;
@@ -12,7 +13,7 @@ int main(int argc, char** argv) {
     std::string uName;
     std::string pw;
     uint16_t port;
-//    unsigned int difficulty;
+    unsigned int difficulty;
     unsigned int verbosity;
 
     try {
@@ -23,7 +24,7 @@ int main(int argc, char** argv) {
         uName = argumentParser.getUName();
         pw = argumentParser.getPw();
         port = argumentParser.getPort();
-       // difficulty = argumentParser.getDifficulty();
+        difficulty = argumentParser.getDifficulty();
         verbosity = argumentParser.getVerbosity();
     } catch (std::invalid_argument &e) {
         std::cerr << e.what() << std::endl;
@@ -50,7 +51,11 @@ int main(int argc, char** argv) {
     }
 
     util::Logging log{std::cout, verbosity};
-    communication::MessageHandler messageHandler{address, port, log};
+    communication::Communicator communicator{
+        lobbyName, uName, pw, difficulty, teamConfig, address, port, log};
 
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::hours{100});
+    }
     return 0;
 }

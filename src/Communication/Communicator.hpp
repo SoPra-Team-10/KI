@@ -24,7 +24,7 @@ namespace communication {
                 const std::string &server, uint16_t port, util::Logging &log);
 
     private:
-        void onMessageReceive(messages::Message &message);
+        void onMessageReceive(messages::Message message);
         void send(const messages::Payload &payload);
 
         template <typename T>
@@ -32,6 +32,7 @@ namespace communication {
 
         MessageHandler messageHandler;
         Game game;
+        util::Logging &log;
     };
 }
 

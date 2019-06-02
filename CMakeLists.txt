@@ -7,7 +7,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif(NOT CMAKE_BUILD_TYPE)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Werror -Wno-implicit-fallthrough")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Werror -Wno-implicit-fallthrough -march=native -mtune=native")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
 endif ()
@@ -23,7 +23,12 @@ set(SOURCES
         ${CMAKE_SOURCE_DIR}/src/Communication/Communicator.cpp
         ${CMAKE_SOURCE_DIR}/src/Game/Game.cpp)
 
-set(LIBS pthread stdc++fs SopraGameLogic SopraMessages SopraNetwork)
+set(LIBS pthread stdc++fs SopraGameLogic SopraMessages)
+
+set(SOURCES ${SOURCES}
+        ${CMAKE_SOURCE_DIR}/../Network/Client/WebSocketClient.cpp)
+include_directories(${CMAKE_SOURCE_DIR}/../Network/)
+set(LIBS ${LIBS} websockets)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 add_executable(${PROJECT_NAME} src/main.cpp ${SOURCES})

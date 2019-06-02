@@ -12,19 +12,47 @@ namespace communication {
                                 const std::string &password,
                                 unsigned int difficulty, const messages::request::TeamConfig &teamConfig,
                                 const std::string &server, uint16_t port, util::Logging &log)
-            : messageHandler{server, port, log}, game{difficulty} {
+            : messageHandler{server, port, log}, game{difficulty}, log{log} {
+        messageHandler.receiveListener(
+                std::bind(&Communicator::onMessageReceive, this, std::placeholders::_1));
+
         send(messages::request::JoinRequest{lobbyName, userName, password, true});
+        log.info("Send JoinRequest");
         send(teamConfig);
+        log.info("Send TeamConfig");
         send(game.getTeamFormation());
+        log.info("Send TeamFormation");
     }
 
+    template <>
+    void Communicator::onPayloadReceive<messages::broadcast::MatchStart>(
+            const messages::broadcast::MatchStart &payload) {
+        log.info("Got MatchStart");
+        game.setMatchStart(payload);
+    }
+
+    template <>
+    void Communicator::onPayloadReceive<messages::broadcast::MatchFinish>(
+            const messages::broadcast::MatchFinish &) {
+        log.info("Got MatchFinish, exiting");
+        //@TODO maybe print some more information (who won...)
+        std::exit(0);
+    }
+
+    template <>
+    void Communicator::onPayloadReceive<messages::broadcast::Snapshot>(
+            const messages::broadcast::Snapshot &payload) {
+        log.info("Got Snapshot");
+        game.onSnapshot(payload);
+    }
 
     template<typename T>
-    void Communicator::onPayloadReceive(const T &payload) {
-
+    void Communicator::onPayloadReceive(const T&) {
+        log.warn("Got unhandled message:");
+        log.warn(T::getName());
     }
 
-    void Communicator::onMessageReceive(messages::Message &message) {
+    void Communicator::onMessageReceive(messages::Message message) {
         std::visit([this](const auto &payload){
             this->onPayloadReceive(payload);
         }, message.getPayload());

@@ -31,14 +31,8 @@ namespace communication {
                 auto message = json.get<messages::Message>();
                 receiveListener(message);
             } catch (nlohmann::json::exception &e) {
-                this->send(messages::Message{messages::unicast::PrivateDebug{
-                        e.what()
-                }});
-                log.error("Got invalid json!");
+                log.error("Got invalid json (or the f*cking lobby mod)!");
             } catch (std::runtime_error &e) {
-                this->send(messages::Message{messages::unicast::PrivateDebug{
-                        e.what()
-                }});
                 log.error("Got invalid json values!");
             }
         }
