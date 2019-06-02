@@ -2,10 +2,12 @@
 #include <iostream>
 #include <Util/Logging.hpp>
 #include <Communication/MessageHandler.hpp>
+#include <filesystem>
+#include <fstream>
 
 int main(int argc, char** argv) {
     std::string address;
-    std::string configPath;
+    std::string teamConfigPath;
     std::string lobbyName;
     std::string uName;
     std::string pw;
@@ -16,7 +18,7 @@ int main(int argc, char** argv) {
     try {
         util::ArgumentParser argumentParser{argc, argv};
         address = argumentParser.getAddress();
-        configPath = argumentParser.getConfigPath();
+        teamConfigPath = argumentParser.getConfigPath();
         lobbyName = argumentParser.getLobbyName();
         uName = argumentParser.getUName();
         pw = argumentParser.getPw();
@@ -24,6 +26,25 @@ int main(int argc, char** argv) {
        // difficulty = argumentParser.getDifficulty();
         verbosity = argumentParser.getVerbosity();
     } catch (std::invalid_argument &e) {
+        std::cerr << e.what() << std::endl;
+        std::exit(1);
+    }
+
+    if (!std::filesystem::exists(teamConfigPath)) {
+        std::cerr << "Team config file doesn't exist" << std::endl;
+        std::exit(1);
+    }
+
+    communication::messages::request::TeamConfig teamConfig;
+    try {
+        nlohmann::json json;
+        std::ifstream ifstream{teamConfigPath};
+        ifstream >> json;
+        teamConfig = json.get<communication::messages::request::TeamConfig>();
+    } catch (nlohmann::json::exception &e) {
+        std::cerr << e.what() << std::endl;
+        std::exit(1);
+    } catch (std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
         std::exit(1);
     }
