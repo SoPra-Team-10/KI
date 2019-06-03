@@ -9,7 +9,7 @@
 #define KI_COMMUNICATOR_HPP
 
 #include <string>
-#include <Util/Logging.hpp>
+#include <SopraUtil/Logging.hpp>
 #include <SopraMessages/Message.hpp>
 #include <SopraMessages/TeamConfig.hpp>
 #include <Game/Game.hpp>

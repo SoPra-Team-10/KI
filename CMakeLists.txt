@@ -16,14 +16,12 @@ endif ()
 project(KI VERSION 0.0.1 DESCRIPTION "KI for SoPra")
 
 set(SOURCES
-        ${CMAKE_SOURCE_DIR}/src/Util/Logging.cpp
-        ${CMAKE_SOURCE_DIR}/src/Util/Timer.cpp
         ${CMAKE_SOURCE_DIR}/src/Util/ArgumentParser.cpp
         ${CMAKE_SOURCE_DIR}/src/Communication/MessageHandler.cpp
         ${CMAKE_SOURCE_DIR}/src/Communication/Communicator.cpp
         ${CMAKE_SOURCE_DIR}/src/Game/Game.cpp)
 
-set(LIBS pthread stdc++fs SopraGameLogic SopraMessages SopraNetwork)
+set(LIBS pthread stdc++fs SopraGameLogic SopraMessages SopraNetwork SopraUtil)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 add_executable(${PROJECT_NAME} src/main.cpp ${SOURCES})

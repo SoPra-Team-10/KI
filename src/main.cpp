@@ -1,6 +1,6 @@
 #include <Util/ArgumentParser.hpp>
 #include <iostream>
-#include <Util/Logging.hpp>
+#include <SopraUtil/Logging.hpp>
 #include <Communication/MessageHandler.hpp>
 #include <filesystem>
 #include <fstream>

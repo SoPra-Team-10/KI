@@ -11,7 +11,7 @@
 #include <SopraNetwork/WebSocketClient.hpp>
 #include <SopraMessages/Message.hpp>
 
-#include <Util/Logging.hpp>
+#include <SopraUtil/Logging.hpp>
 
 namespace communication {
     class MessageHandler {

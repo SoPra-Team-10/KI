@@ -34,6 +34,7 @@ of docker.
  * [SopraNetwork](https://github.com/SoPra-Team-10/Network)
  * [SopraGameLogic](https://github.com/SoPra-Team-10/GameLogic)
  * [SopraMessages](https://github.com/SoPra-Team-10/Messages)
+ * [SopraUtil](https://github.com/SoPra-Team-10/Util)
  * Either a POSIX-Compliant OS or Cygwin (to use pthreads)
  * Optional: Google Tests and Google Mock for Unit-Tests
 
