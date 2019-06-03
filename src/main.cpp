@@ -29,5 +29,6 @@ int main(int argc, char** argv) {
 
     util::Logging log{std::cout, verbosity};
 
+    log.info("Started");
     return 0;
 }
