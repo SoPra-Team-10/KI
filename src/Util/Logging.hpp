@@ -5,8 +5,8 @@
  * @brief Declaration of the Logging class
  */
 
-#ifndef SERVER_LOGGING_HPP
-#define SERVER_LOGGING_HPP
+#ifndef KI_LOGGING_HPP
+#define KI_LOGGING_HPP
 
 #include <ostream>
 
@@ -66,4 +66,4 @@ namespace util {
     };
 }
 
-#endif //SERVER_LOGGING_HPP
+#endif //KI_LOGGING_HPP

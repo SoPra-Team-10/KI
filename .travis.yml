@@ -6,7 +6,7 @@ branches:
 
 env:
   global:
-    - GH_REPO_NAME: Server
+    - GH_REPO_NAME: KI
     - DOXYFILE: $TRAVIS_BUILD_DIR/DOXYFILE
     - GH_REPO_REF: github.com/SoPra-Team-10/KI.git
 

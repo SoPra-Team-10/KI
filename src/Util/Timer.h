@@ -5,8 +5,8 @@
  * @brief Declaration of the Timer class
  */
 
-#ifndef SERVER_TIMER_H
-#define SERVER_TIMER_H
+#ifndef KI_TIMER_H
+#define KI_TIMER_H
 
 
 #include <thread>
@@ -85,4 +85,4 @@ namespace util {
     }
 }
 
-#endif //SERVER_TIMER_H
+#endif //KI_TIMER_H
