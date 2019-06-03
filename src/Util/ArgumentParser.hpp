@@ -5,8 +5,8 @@
  * @brief Declaration of the ArgumentParser class
  */
 
-#ifndef SERVER_ARGUMENTPARSER_HPP
-#define SERVER_ARGUMENTPARSER_HPP
+#ifndef KI_ARGUMENTPARSER_HPP
+#define KI_ARGUMENTPARSER_HPP
 
 #include <string>
 #include <optional>
@@ -58,4 +58,4 @@ namespace util {
     };
 }
 
-#endif //SERVER_ARGUMENTPARSER_HPP
+#endif //KI_ARGUMENTPARSER_HPP
