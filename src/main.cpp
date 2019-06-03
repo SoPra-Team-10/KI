@@ -1,125 +1,63 @@
+#include <Util/ArgumentParser.hpp>
 #include <iostream>
-#include <getopt.h>
-#include <optional>
-
-#define PORT_DEFAULT 4488
-#define DIFFICULTY_DEFAULT 1
-#define VERBOSE_DEFAULT 0
-
-/**
- * Prints the usage of cli parameters to stdout
- */
-void showHelp(){
-    std::cout << "Usage:\n\n"
-    << "Mandatory options:\n"
-    << "\t -a/--address: The address to the game server\n"
-    << "\t -t/--team: Path to the team configuration file\n"
-    << "\t -l/--lobby: Name of the desired lobby\n\n"
-    << "Optional options:\n"
-    << "\t -u/--username: Username of the AI player\n"
-    << "\t -k/--password: Password of the AI player\n"
-    << "\t -p/--port: Port to connect to\n"
-    << "\t -d/--difficulty: Strength of the AI Player. Choose between 0 (maximum difficulty) and 2\n"
-    << "\t -v/--verbosity: Displays additional information (0 = none, 1 = error level, 2 = warn level, 3 = info level, 4 = debug level)"
-    << std::endl;
-}
+#include <SopraUtil/Logging.hpp>
+#include <Communication/MessageHandler.hpp>
+#include <filesystem>
+#include <fstream>
+#include <Communication/Communicator.hpp>
 
 int main(int argc, char** argv) {
     std::string address;
-    std::string configPath;
+    std::string teamConfigPath;
     std::string lobbyName;
     std::string uName;
     std::string pw;
-    int port = PORT_DEFAULT;
-    int difficulty = DIFFICULTY_DEFAULT;
-    int verbosity = VERBOSE_DEFAULT;
+    uint16_t port;
+    unsigned int difficulty;
+    unsigned int verbosity;
 
-    struct option longopts[] = {
-            {"address", required_argument, nullptr, 'a'},
-            {"team", required_argument, nullptr, 't'},
-            {"lobby", required_argument, nullptr, 'l'},
-            {"username", required_argument, nullptr, 'u'},
-            {"password", required_argument, nullptr, 'k'},
-            {"port", required_argument, nullptr, 'p'},
-            {"difficulty", required_argument, nullptr, 'd'},
-            {"verbosity", required_argument, nullptr, 'v'},
-            {}
-    };
-
-    int c = 0;
-    int optionIndex = -1;
-
-    auto parse = [](int* target, const std::string &optName){
-        try {
-            *target = std::stoi(optarg);
-        }catch (std::invalid_argument &e){
-            std::cerr << "Invalid argument for option '" << optName << "', integer required!\n" << e.what() << std::endl;
-        }
-    };
-
-    while((c = getopt_long(argc, argv, "a:t:l:u:p:k:d:v:h", longopts, &optionIndex)) != -1){
-        std::string optionName;
-        if(optionIndex == -1){
-            optionName = static_cast<char>(c);
-        } else {
-            optionName = longopts[optionIndex].name;
-        }
-
-        switch(c){
-            case 0:
-                //Flag was set by getopt, do nothing
-                continue;
-            case 'a':
-                address = optarg;
-                break;
-            case 't':
-                configPath = optarg;
-                break;
-            case 'l':
-                lobbyName = optarg;
-                break;
-            case 'u':
-                uName = optarg;
-                break;
-            case 'k':
-                pw = optarg;
-                break;
-            case 'p':
-                parse(&port, optionName);
-                break;
-            case 'd':
-                parse(&difficulty, optionName);
-                break;
-            case 'v':
-                parse(&verbosity, optionName);
-                break;
-            case 'h':
-                showHelp();
-                break;
-            case '?':
-                std::cerr << "Error parsing cli parameters" << std::endl;
-                return -1;
-            default:
-                std::cerr << "Error parsing cli parameters" << std::endl;
-                return -1;
-        }
-
-        optionIndex = -1;
+    try {
+        util::ArgumentParser argumentParser{argc, argv};
+        address = argumentParser.getAddress();
+        teamConfigPath = argumentParser.getConfigPath();
+        lobbyName = argumentParser.getLobbyName();
+        uName = argumentParser.getUName();
+        pw = argumentParser.getPw();
+        port = argumentParser.getPort();
+        difficulty = argumentParser.getDifficulty();
+        verbosity = argumentParser.getVerbosity();
+    } catch (std::invalid_argument &e) {
+        std::cerr << e.what() << std::endl;
+        std::exit(1);
     }
 
-    if(address.empty()){
-        std::cerr << "Missing mandatory option 'address'. Please specify the address to the game server." << std::endl;
-        return -1;
+    if (!std::filesystem::exists(teamConfigPath)) {
+        std::cerr << "Team config file doesn't exist" << std::endl;
+        std::exit(1);
     }
 
-    if(configPath.empty()){
-        std::cerr << "Missing mandatory option 'team'. Please specify the path to a valid team configuration file." << std::endl;
-        return -1;
+    communication::messages::request::TeamConfig teamConfig;
+    try {
+        nlohmann::json json;
+        std::ifstream ifstream{teamConfigPath};
+        ifstream >> json;
+        teamConfig = json.get<communication::messages::request::TeamConfig>();
+    } catch (nlohmann::json::exception &e) {
+        std::cerr << e.what() << std::endl;
+        std::exit(1);
+    } catch (std::runtime_error &e) {
+        std::cerr << e.what() << std::endl;
+        std::exit(1);
     }
 
-    if(lobbyName.empty()){
-        std::cerr << "Missing mandatory option 'lobby'. Please specify the name of a lobby." << std::endl;
-        return -1;
+    util::Logging log{std::cout, verbosity};
+    communication::Communicator communicator{
+        lobbyName, uName, pw, difficulty, teamConfig, address, port, log};
+
+    log.info("Started");
+
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::hours{100});
     }
     return 0;
 }
