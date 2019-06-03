@@ -72,3 +72,6 @@ you can now run the ki by executing the created `KI` file:
 ## Doxygen Dokumentation
 - [Master Branch](https://sopra-team-10.github.io/KI/master/html/index.html)
 - [Develop Branch](https://sopra-team-10.github.io/KI/develop/html/index.html)
+
+## SonarQube Analyse
+Das Analyseergebniss von SonarQube ist [hier auf SonarCloud](https://sonarcloud.io/dashboard?id=SoPra-Team-10_KI) zu finden.
