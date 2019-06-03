@@ -23,12 +23,7 @@ set(SOURCES
         ${CMAKE_SOURCE_DIR}/src/Communication/Communicator.cpp
         ${CMAKE_SOURCE_DIR}/src/Game/Game.cpp)
 
-set(LIBS pthread stdc++fs SopraGameLogic SopraMessages)
-
-set(SOURCES ${SOURCES}
-        ${CMAKE_SOURCE_DIR}/../Network/Client/WebSocketClient.cpp)
-include_directories(${CMAKE_SOURCE_DIR}/../Network/)
-set(LIBS ${LIBS} websockets)
+set(LIBS pthread stdc++fs SopraGameLogic SopraMessages SopraNetwork)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 add_executable(${PROJECT_NAME} src/main.cpp ${SOURCES})
