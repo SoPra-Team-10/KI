@@ -12,7 +12,7 @@ namespace communication {
                                 const std::string &password,
                                 unsigned int difficulty, const messages::request::TeamConfig &teamConfig,
                                 const std::string &server, uint16_t port, util::Logging &log)
-            : messageHandler{server, port, log}, game{difficulty}, log{log} {
+            : messageHandler{server, port, log}, game{difficulty, teamConfig}, log{log} {
         messageHandler.receiveListener(
                 std::bind(&Communicator::onMessageReceive, this, std::placeholders::_1));
 

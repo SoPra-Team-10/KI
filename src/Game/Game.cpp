@@ -7,7 +7,7 @@
 
 #include "Game.hpp"
 
-Game::Game(unsigned int , communication::messages::request::TeamConfig &) {}
+Game::Game(unsigned int , const communication::messages::request::TeamConfig &) {}
 
 auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart &)
     -> communication::messages::request::TeamFormation {
