@@ -17,7 +17,7 @@ namespace util {
     ArgumentParser::ArgumentParser(int argc, char **argv) {
         if (argc <= 1) {
             printHelp();
-            std::exit(1);
+            std::exit(0);
         }
 
         struct option longopts[] = {
@@ -35,11 +35,12 @@ namespace util {
         int c = 0;
         int optionIndex = -1;
 
-        auto parse = [](int* target, const std::string &optName){
+        auto parse = [](const std::string &optName){
             try {
-                *target = std::stoi(optarg);
+                return std::stoi(optarg);
             }catch (std::invalid_argument &e){
                 std::cerr << "Invalid argument for option '" << optName << "', integer required!\n" << e.what() << std::endl;
+                std::exit(1);
             }
         };
 
@@ -72,17 +73,17 @@ namespace util {
                     pw = optarg;
                     break;
                 case 'p':
-                    parse(&initialPort, optionName);
+                    initialPort = parse(optionName);
                     break;
                 case 'd':
-                    parse(&initialDifficulty, optionName);
+                    initialDifficulty = parse(optionName);
                     break;
                 case 'v':
-                    parse(&initialVerbosity, optionName);
+                    initialVerbosity = parse(optionName);
                     break;
                 case 'h':
                     printHelp();
-                    std::exit(1);
+                    std::exit(0);
                 default:
                     throw std::invalid_argument{"Error parsing cli parameters"};
             }
