@@ -16,9 +16,8 @@
 
 class Game {
 public:
-    explicit Game(unsigned int difficulty);
-    auto getTeamFormation() -> communication::messages::request::TeamFormation;
-    void setMatchStart(const communication::messages::broadcast::MatchStart &matchStart);
+    Game(unsigned int difficulty, communication::messages::request::TeamConfig &ownTeamConfig);
+    auto getTeamFormation(const communication::messages::broadcast::MatchStart &matchStart) -> communication::messages::request::TeamFormation;
     void onSnapshot(const communication::messages::broadcast::Snapshot &snapshot);
     auto getNextAction(const communication::messages::broadcast::Next &next)
         -> communication::messages::request::DeltaRequest;

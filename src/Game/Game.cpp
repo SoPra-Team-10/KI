@@ -7,11 +7,10 @@
 
 #include "Game.hpp"
 
-Game::Game(unsigned int ) {
+Game::Game(unsigned int , communication::messages::request::TeamConfig &) {}
 
-}
-
-auto Game::getTeamFormation() -> communication::messages::request::TeamFormation {
+auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart &)
+    -> communication::messages::request::TeamFormation {
     return {};
 }
 
@@ -22,9 +21,5 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &) {
 auto Game::getNextAction(const communication::messages::broadcast::Next &)
     -> communication::messages::request::DeltaRequest {
     return communication::messages::request::DeltaRequest();
-}
-
-void Game::setMatchStart(const communication::messages::broadcast::MatchStart &) {
-
 }
 

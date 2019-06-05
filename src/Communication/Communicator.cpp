@@ -20,15 +20,14 @@ namespace communication {
         log.info("Send JoinRequest");
         send(teamConfig);
         log.info("Send TeamConfig");
-        send(game.getTeamFormation());
-        log.info("Send TeamFormation");
     }
 
     template <>
     void Communicator::onPayloadReceive<messages::broadcast::MatchStart>(
             const messages::broadcast::MatchStart &payload) {
         log.info("Got MatchStart");
-        game.setMatchStart(payload);
+        send(game.getTeamFormation(payload));
+        log.info("Send TeamFormation");
     }
 
     template <>
