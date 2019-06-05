@@ -48,7 +48,6 @@ private:
     int currentRound = 1;
     std::shared_ptr<gameModel::Environment> currentEnv;
     TeamSide side;
-    std::optional<gameModel::Team> myTeam = std::nullopt;
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig;
 
