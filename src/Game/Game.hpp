@@ -17,23 +17,17 @@
 
 class Game {
     enum class TeamSide{
-        LEFT, RIGHT;
+        LEFT, RIGHT
     };
 
 public:
-    explicit Game(unsigned int difficulty);
+    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig);
 
     /**
      * Gets the TeamFormation for the match
      * @return
      */
-    auto getTeamFormation() -> communication::messages::request::TeamFormation;
-
-    /**
-     * Constructs the first internal game state from the given broadcast
-     * @param matchStart The message received at the beginning of the match
-     */
-    void setMatchStart(const communication::messages::broadcast::MatchStart &matchStart);
+    auto getTeamFormation(const communication::messages::broadcast::MatchStart &matchStart) -> communication::messages::request::TeamFormation;
 
     /**
      * Updates the game state after a broadcast
@@ -50,8 +44,22 @@ public:
         -> communication::messages::request::DeltaRequest;
 
 private:
+    int difficulty;
+    int currentRound = 1;
     std::shared_ptr<gameModel::Environment> currentEnv;
     TeamSide side;
+    std::optional<gameModel::Team> myTeam = std::nullopt;
+    communication::messages::request::TeamConfig myConfig;
+    communication::messages::request::TeamConfig theirConfig;
+
+    /**
+     * Constructs a Team object from a given TeamSnapshot
+     * @param teamSnapshot
+     * @param teamSide side on which the Team plays
+     * @return gameModel::Team
+     */
+    auto teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, TeamSide teamSide) const ->
+        std::shared_ptr<gameModel::Team>;
 };
 
 
