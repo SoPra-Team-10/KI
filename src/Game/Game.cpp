@@ -15,16 +15,16 @@ auto Game::getTeamFormation() -> communication::messages::request::TeamFormation
     return {};
 }
 
-void Game::onSnapshot(const communication::messages::broadcast::Snapshot &) {
+void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapshot) {
 
 }
 
-auto Game::getNextAction(const communication::messages::broadcast::Next &)
+auto Game::getNextAction(const communication::messages::broadcast::Next &next)
     -> communication::messages::request::DeltaRequest {
     return communication::messages::request::DeltaRequest();
 }
 
-void Game::setMatchStart(const communication::messages::broadcast::MatchStart &) {
+void Game::setMatchStart(const communication::messages::broadcast::MatchStart &matchStart) {
 
 }
 
