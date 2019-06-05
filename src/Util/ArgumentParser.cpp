@@ -20,7 +20,7 @@ namespace util {
             std::exit(0);
         }
 
-        struct option longopts[] = {
+        option longopts[] = {
                 {"address", required_argument, nullptr, 'a'},
                 {"team", required_argument, nullptr, 't'},
                 {"lobby", required_argument, nullptr, 'l'},
