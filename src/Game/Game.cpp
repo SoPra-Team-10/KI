@@ -1,5 +1,3 @@
-#include <utility>
-
 /**
  * @file Game.cpp
  * @author paul
@@ -8,6 +6,7 @@
  */
 
 #include "Game.hpp"
+#include <utility>
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
     difficulty(difficulty), myConfig(std::move(ownTeamConfig)){}
