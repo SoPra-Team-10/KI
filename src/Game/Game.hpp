@@ -64,7 +64,7 @@ private:
         std::shared_ptr<gameModel::Team>;
 
     /**
-     * Mirrors the given position in place at the x-axis
+     * Mirrors the given position in place on the x-axis
      * @param pos
      */
     void mirrorPos(gameModel::Position &pos) const;
