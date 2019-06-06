@@ -13,15 +13,32 @@ Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig
 
 auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart &matchStart)
     -> communication::messages::request::TeamFormation {
-    currentEnv = std::make_shared<gameModel::Environment>(gameModel::Config{matchStart.getMatchConfig()}, nullptr, nullptr);
+    using P = gameModel::Position;
+    P seekerPos{3, 8};
+    P keeperPos{3, 6};
+    P c1Pos{7, 4};
+    P c2Pos{6, 6};
+    P c3Pos{7, 8};
+    P b1Pos{6, 5};
+    P b2Pos{6, 7};
+    matchConfig = matchStart.getMatchConfig();
     if(matchStart.getLeftTeamUserName() == myConfig.getTeamName()){
         side = TeamSide::LEFT;
         theirConfig = matchStart.getRightTeamConfig();
-        return {3, 8, 3, 6, 7, 4, 6, 6, 7, 8, 6, 5, 6, 7};
+        return {seekerPos.x, seekerPos.y, keeperPos.x, keeperPos.y, c1Pos.x, c1Pos.y, c2Pos.x, c2Pos.y,
+                c3Pos.x, c3Pos.y, b1Pos.x, b1Pos.y, b2Pos.x, b2Pos.y};
     } else {
         side = TeamSide::RIGHT;
         theirConfig = matchStart.getLeftTeamConfig();
-        return {13, 8, 13, 6, 9, 4, 10, 6, 9, 8, 10, 4, 10, 7};
+        mirrorPos(seekerPos);
+        mirrorPos(keeperPos);
+        mirrorPos(c1Pos);
+        mirrorPos(c2Pos);
+        mirrorPos(c3Pos);
+        mirrorPos(b1Pos);
+        mirrorPos(b2Pos);
+        return {seekerPos.x, seekerPos.y, keeperPos.x, keeperPos.y, c1Pos.x, c1Pos.y, c2Pos.x, c2Pos.y,
+                c3Pos.x, c3Pos.y, b1Pos.x, b1Pos.y, b2Pos.x, b2Pos.y};
     }
 }
 
@@ -46,12 +63,19 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         pileOfShit.emplace_back(std::make_shared<gameModel::CubeOfShit>(gameModel::Position{pieceOfShit.first, pieceOfShit.second}));
     }
 
-    currentEnv->team1 = teamFromSnapshot(snapshot.getLeftTeam(), TeamSide::LEFT);
-    currentEnv->team2 = teamFromSnapshot(snapshot.getRightTeam(), TeamSide::RIGHT);
-    currentEnv->quaffle = quaf;
-    currentEnv->bludgers = bludgers;
-    currentEnv->snitch = snitch;
-    currentEnv->pileOfShit = pileOfShit;
+    auto team1 = teamFromSnapshot(snapshot.getLeftTeam(), TeamSide::LEFT);
+    auto team2 = teamFromSnapshot(snapshot.getRightTeam(), TeamSide::RIGHT);
+
+    if(!currentEnv.has_value()){
+        currentEnv = std::make_shared<gameModel::Environment>(gameModel::Config{matchConfig}, team1, team2);
+    } else {
+        currentEnv.value()->team1 = team1;
+        currentEnv.value()->team2 = team2;
+        currentEnv.value()->quaffle = quaf;
+        currentEnv.value()->bludgers = bludgers;
+        currentEnv.value()->snitch = snitch;
+        currentEnv.value()->pileOfShit = pileOfShit;
+    }
 }
 
 auto Game::getNextAction(const communication::messages::broadcast::Next &)
@@ -131,5 +155,10 @@ auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapsh
     gameModel::Fanblock fans(teleport, rangedAttack, impulse, snitchPush, blockCell);
     return std::make_shared<gameModel::Team>(seeker, keeper, beaters, chasers, "", "", "", teamSnapshot.getPoints(), fans);
 }
+
+void Game::mirrorPos(gameModel::Position &pos) const{
+    pos.x = FIELD_WIDTH - pos.x;
+}
+
 
 

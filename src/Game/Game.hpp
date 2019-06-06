@@ -15,6 +15,7 @@
 #include <SopraMessages/DeltaRequest.hpp>
 #include <SopraGameLogic/GameModel.h>
 
+
 class Game {
     enum class TeamSide{
         LEFT, RIGHT
@@ -44,12 +45,14 @@ public:
         -> communication::messages::request::DeltaRequest;
 
 private:
+    static constexpr int FIELD_WIDTH = 16;
     int difficulty;
     int currentRound = 1;
-    std::shared_ptr<gameModel::Environment> currentEnv;
+    std::optional<std::shared_ptr<gameModel::Environment>> currentEnv = std::nullopt;
     TeamSide side;
     communication::messages::request::TeamConfig myConfig;
-    communication::messages::request::TeamConfig theirConfig;
+    communication::messages::request::TeamConfig theirConfig = {};
+    communication::messages::broadcast::MatchConfig matchConfig = {};
 
     /**
      * Constructs a Team object from a given TeamSnapshot
@@ -59,6 +62,12 @@ private:
      */
     auto teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, TeamSide teamSide) const ->
         std::shared_ptr<gameModel::Team>;
+
+    /**
+     * Mirrors the given position in place at the x-axis
+     * @param pos
+     */
+    void mirrorPos(gameModel::Position &pos) const;
 };
 
 
