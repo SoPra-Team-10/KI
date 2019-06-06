@@ -2,7 +2,7 @@
  * @file Communicator.cpp
  * @author paul
  * @date 02.06.19
- * @brief Communicator @TODO
+ * @brief Defines the communicator class
  */
 
 #include "Communicator.hpp"
@@ -31,7 +31,7 @@ namespace communication {
     }
 
     template <>
-    void Communicator::onPayloadReceive<messages::broadcast::MatchFinish>(
+    __attribute__((noreturn)) void Communicator::onPayloadReceive<messages::broadcast::MatchFinish>(
             const messages::broadcast::MatchFinish &) {
         log.info("Got MatchFinish, exiting");
         //@TODO maybe print some more information (who won...)
