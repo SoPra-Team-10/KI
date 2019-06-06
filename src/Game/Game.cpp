@@ -25,8 +25,6 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
     if(matchStart.getLeftTeamUserName() == myConfig.getTeamName()){
         side = TeamSide::LEFT;
         theirConfig = matchStart.getRightTeamConfig();
-        return {seekerPos.x, seekerPos.y, keeperPos.x, keeperPos.y, c1Pos.x, c1Pos.y, c2Pos.x, c2Pos.y,
-                c3Pos.x, c3Pos.y, b1Pos.x, b1Pos.y, b2Pos.x, b2Pos.y};
     } else {
         side = TeamSide::RIGHT;
         theirConfig = matchStart.getLeftTeamConfig();
@@ -37,9 +35,10 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
         mirrorPos(c3Pos);
         mirrorPos(b1Pos);
         mirrorPos(b2Pos);
-        return {seekerPos.x, seekerPos.y, keeperPos.x, keeperPos.y, c1Pos.x, c1Pos.y, c2Pos.x, c2Pos.y,
-                c3Pos.x, c3Pos.y, b1Pos.x, b1Pos.y, b2Pos.x, b2Pos.y};
     }
+
+    return {seekerPos.x, seekerPos.y, keeperPos.x, keeperPos.y, c1Pos.x, c1Pos.y, c2Pos.x, c2Pos.y,
+            c3Pos.x, c3Pos.y, b1Pos.x, b1Pos.y, b2Pos.x, b2Pos.y};
 }
 
 void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapshot) {
