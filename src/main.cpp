@@ -59,5 +59,4 @@ int main(int argc, char** argv) {
     while (true) {
         std::this_thread::sleep_for(std::chrono::hours{100});
     }
-    return 0;
 }

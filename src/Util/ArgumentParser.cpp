@@ -9,9 +9,9 @@
 #include <getopt.h>
 #include <iostream>
 
-#define PORT_DEFAULT 4488
-#define DIFFICULTY_DEFAULT 1
-#define VERBOSE_DEFAULT 0
+static constexpr int PORT_DEFAULT = 4488;
+static constexpr int DIFFICULTY_DEFAULT = 1;
+static constexpr int VERBOSITY_DEFAULT = 0;
 
 namespace util {
     ArgumentParser::ArgumentParser(int argc, char **argv) {
@@ -44,7 +44,9 @@ namespace util {
             }
         };
 
-        int initialPort = PORT_DEFAULT, initialDifficulty = DIFFICULTY_DEFAULT, initialVerbosity = VERBOSE_DEFAULT;
+        int initialPort = PORT_DEFAULT;
+        int initialDifficulty = DIFFICULTY_DEFAULT;
+        int initialVerbosity = VERBOSITY_DEFAULT;
         while((c = getopt_long(argc, argv, "a:t:l:u:p:k:d:v:h", longopts, &optionIndex)) != -1){
             std::string optionName;
             if(optionIndex == -1){
