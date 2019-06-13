@@ -87,20 +87,20 @@ auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapsh
     using ID = communication::messages::types::EntityId;
     auto teamConf = teamSide == side ? myConfig : theirConfig;
     bool left = teamSide == TeamSide::LEFT;
-    gameModel::Seeker seeker(gameModel::Position{teamSnapshot.getSeekerX(), teamSnapshot.getSeekerY()}, "", {}, teamConf.getSeeker().getBroom(),
+    gameModel::Seeker seeker(gameModel::Position{teamSnapshot.getSeekerX(), teamSnapshot.getSeekerY()}, teamConf.getSeeker().getBroom(),
             left ? ID::LEFT_SEEKER : ID::RIGHT_SEEKER);
     seeker.knockedOut = teamSnapshot.isSeekerKnockout();
     seeker.isFined = teamSnapshot.isSeekerBanned();
 
-    gameModel::Keeper keeper(gameModel::Position{teamSnapshot.getKeeperX(), teamSnapshot.getKeeperY()}, "", {}, teamConf.getKeeper().getBroom(),
+    gameModel::Keeper keeper(gameModel::Position{teamSnapshot.getKeeperX(), teamSnapshot.getKeeperY()}, teamConf.getKeeper().getBroom(),
             left ? ID::LEFT_KEEPER : ID::RIGHT_KEEPER);
     keeper.knockedOut = teamSnapshot.isKeeperKnockout();
     keeper.isFined = teamSnapshot.isKeeperBanned();
 
     std::array<gameModel::Beater, 2> beaters =
-            {gameModel::Beater(gameModel::Position{teamSnapshot.getBeater1X(), teamSnapshot.getBeater1Y()}, "", {}, teamConf.getBeater1().getBroom(),
+            {gameModel::Beater(gameModel::Position{teamSnapshot.getBeater1X(), teamSnapshot.getBeater1Y()}, teamConf.getBeater1().getBroom(),
                      left ? ID::LEFT_BEATER1: ID::RIGHT_BEATER1),
-             gameModel::Beater(gameModel::Position{teamSnapshot.getBeater2X(), teamSnapshot.getBeater2Y()}, "", {}, teamConf.getBeater2().getBroom(),
+             gameModel::Beater(gameModel::Position{teamSnapshot.getBeater2X(), teamSnapshot.getBeater2Y()}, teamConf.getBeater2().getBroom(),
                      left ? ID::LEFT_BEATER2: ID::RIGHT_BEATER2)};
     beaters[0].knockedOut = teamSnapshot.isBeater1Knockout();
     beaters[0].isFined = teamSnapshot.isBeater1Banned();
@@ -152,7 +152,7 @@ auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapsh
     }
 
     gameModel::Fanblock fans(teleport, rangedAttack, impulse, snitchPush, blockCell);
-    return std::make_shared<gameModel::Team>(seeker, keeper, beaters, chasers, "", "", "", teamSnapshot.getPoints(), fans);
+    return std::make_shared<gameModel::Team>(seeker, keeper, beaters, chasers, teamSnapshot.getPoints(), fans);
 }
 
 void Game::mirrorPos(gameModel::Position &pos) const{
