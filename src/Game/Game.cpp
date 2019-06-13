@@ -108,11 +108,11 @@ auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapsh
     beaters[1].isFined = teamSnapshot.isBeater2Banned();
 
     std::array<gameModel::Chaser, 3> chasers=
-            {gameModel::Chaser(gameModel::Position{teamSnapshot.getChaser1X(), teamSnapshot.getChaser1Y()}, "", {}, teamConf.getChaser1().getBroom(),
+            {gameModel::Chaser(gameModel::Position{teamSnapshot.getChaser1X(), teamSnapshot.getChaser1Y()}, teamConf.getChaser1().getBroom(),
                                left ? ID::LEFT_CHASER1 : ID::RIGHT_CHASER1),
-             gameModel::Chaser(gameModel::Position{teamSnapshot.getChaser2X(), teamSnapshot.getChaser2Y()}, "", {}, teamConf.getChaser2().getBroom(),
+             gameModel::Chaser(gameModel::Position{teamSnapshot.getChaser2X(), teamSnapshot.getChaser2Y()}, teamConf.getChaser2().getBroom(),
                                left ? ID::LEFT_CHASER2 : ID::RIGHT_CHASER2),
-             gameModel::Chaser(gameModel::Position{teamSnapshot.getChaser3X(), teamSnapshot.getChaser3Y()}, "", {}, teamConf.getChaser3().getBroom(),
+             gameModel::Chaser(gameModel::Position{teamSnapshot.getChaser3X(), teamSnapshot.getChaser3Y()}, teamConf.getChaser3().getBroom(),
                                left ? ID::LEFT_CHASER3 : ID::RIGHT_CHASER3)};
 
     chasers[0].knockedOut = teamSnapshot.isChaser1Knockout();

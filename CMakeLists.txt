@@ -19,7 +19,8 @@ set(SOURCES
         ${CMAKE_SOURCE_DIR}/src/Util/ArgumentParser.cpp
         ${CMAKE_SOURCE_DIR}/src/Communication/MessageHandler.cpp
         ${CMAKE_SOURCE_DIR}/src/Communication/Communicator.cpp
-        ${CMAKE_SOURCE_DIR}/src/Game/Game.cpp src/Game/AI.cpp src/Game/AI.h)
+        ${CMAKE_SOURCE_DIR}/src/Game/Game.cpp
+        ${CMAKE_SOURCE_DIR}/src/Game/AI.cpp)
 
 set(LIBS pthread stdc++fs SopraGameLogic SopraMessages SopraNetwork SopraUtil)
 
