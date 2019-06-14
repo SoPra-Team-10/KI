@@ -6,8 +6,9 @@
 #define KI_AI_H
 
 #include "Game.hpp"
-
-int evalState();
+namespace aiTools{
+    int evalState();
+}
 
 #endif //KI_AI_H
 
