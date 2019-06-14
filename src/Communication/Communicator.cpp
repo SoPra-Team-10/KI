@@ -51,7 +51,7 @@ namespace communication {
         log.warn(T::getName());
     }
 
-    void Communicator::onMessageReceive(messages::Message message) {
+    void Communicator::onMessageReceive(const messages::Message& message) {
         std::visit([this](const auto &payload){
             this->onPayloadReceive(payload);
         }, message.getPayload());
