@@ -35,7 +35,7 @@ namespace aiTools{
 
 
     /**
-     *
+     * A*algorithm implemented as graph search
      * @tparam T Type of the SearchNode used
      * @param Start initial state
      * @param Destination goal state

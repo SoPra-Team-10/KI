@@ -15,8 +15,8 @@ namespace ai{
      * @param start The Position to start
      * @param destination The desired gol Position
      * @param env The Environment to operate on
-     * @return The optimal path as a list of Positions ordered from start (vector::back) to destination (vector::front). Empty if start = destination or
-     * when no path exists
+     * @return The optimal path as a list of Positions ordered from start (vector::back) to destination (vector::front).
+     * Start an destination are inclusivie. Empty if start = destination or when no path exists
      */
     auto computeOptimalPath(const std::shared_ptr<const gameModel::Player> &player, const gameModel::Position &destination,
                             const std::shared_ptr<const gameModel::Environment> &env) -> std::vector<gameModel::Position>;

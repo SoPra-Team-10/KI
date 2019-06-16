@@ -40,3 +40,25 @@ TEST(ai_test, optimal_path_blocked){
         EXPECT_EQ(gameController::getDistance(path[i - 1], path[i]), 1);
     }
 }
+
+
+TEST(ai_test, optimal_path_blocked_complex){
+    auto env = setup::createEnv();
+    env->team1->seeker->position = {9, 5};
+    env->team1->chasers[0]->position = {7, 5};
+    env->team1->chasers[2]->position = {9, 6};
+    env->team1->beaters[0]->position = {7, 6};
+    env->team2->keeper->position = {8, 7};
+    auto path = ai::computeOptimalPath(env->team2->keeper, {9, 4}, env);
+    EXPECT_EQ(path.size(), 5);
+    EXPECT_EQ(path.front(), gameModel::Position(9, 4));
+    for(unsigned long i = 1; i < path.size(); i++){
+        EXPECT_EQ(gameController::getDistance(path[i - 1], path[i]), 1);
+    }
+}
+
+TEST(ai_test, optimal_path_impossible){
+    auto env = setup::createEnv();
+    auto path = ai::computeOptimalPath(env->team2->seeker, env->team1->keeper->position, env);
+    EXPECT_EQ(path.size(), 0);
+}
