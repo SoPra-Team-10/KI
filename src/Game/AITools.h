@@ -1,4 +1,3 @@
-#include <utility>
 
 //
 // Created by tim on 14.06.19.
@@ -9,21 +8,88 @@
 
 #include <memory>
 #include <optional>
+#include <deque>
+#include <list>
 #include <functional>
+#include <set>
 
 namespace aiTools{
     template <typename T>
     class SearchNode {
     public:
-        SearchNode(const std::shared_ptr<T> &state, std::optional<std::shared_ptr<T>> parent, int pathCost,
-                   std::function<int()> f)
-                : state(state), parent(parent), pathCost(pathCost), f(std::move(f)) {}
+        SearchNode(T state, std::optional<std::shared_ptr<SearchNode<T>>> parent, int pathCost) :
+            state(state), parent(parent), pathCost(pathCost) {}
 
-        std::shared_ptr<T> state;
-        std::optional<std::shared_ptr<T>> parent;
+        T state;
+        std::optional<std::shared_ptr<SearchNode<T>>> parent;
         int pathCost = 0;
-        std::function<int()> f;
+        bool operator==(const SearchNode<T> &other) const;
+
     };
+
+
+    template<typename T>
+    bool SearchNode<T>::operator==(const SearchNode<T> &other) const {
+        return this->state == other.state;
+    }
+
+
+    /**
+     *
+     * @tparam T Type of the SearchNode used
+     * @param Start initial state
+     * @param Destination goal state
+     * @param expand Function used for expanding nodes
+     * @param f Function used for evaluating a node. A high value corresponds to low utility
+     * @return The goal node with information about its parent or nothing if problem is impossible
+     */
+    template <typename T>
+    auto aStarSearch(SearchNode<T> &start, SearchNode<T> &destination,
+            std::function<std::vector<SearchNode<T>>(const SearchNode<T>&)> expand,
+            std::function<int(const SearchNode<T>&)> f) -> std::optional<SearchNode<T>>{
+        std::deque<SearchNode<T>> visited;
+        std::list<SearchNode<T>> fringe = {start};
+        std::optional<SearchNode<T>> ret = std::nullopt;
+        while(!fringe.empty()){
+            const auto currentNode = *fringe.begin();
+            fringe.pop_front();
+            if(currentNode == destination){
+                ret = currentNode;
+                break;
+            }
+
+            bool nodeVisited = false;
+            for(const auto &node : visited){
+                if(currentNode == node){
+                    nodeVisited = true;
+                    break;
+                }
+            }
+
+            if(nodeVisited){
+                continue;
+            }
+
+            visited.emplace_back(currentNode);
+            for(const auto &newNode : expand(currentNode)){
+                bool inserted = false;
+                for(auto it = fringe.begin(); it != fringe.end(); it++){
+                    if(f(newNode) < f(*it)){
+                        fringe.emplace(it, newNode);
+                        inserted = true;
+                        break;
+                    }
+                }
+
+                if(!inserted){
+                    fringe.emplace_back(newNode);
+                    fringe.size();
+                }
+            }
+        }
+
+        return ret;
+    }
 }
 
 #endif //KI_AITOOLS_H

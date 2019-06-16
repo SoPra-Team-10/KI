@@ -15,25 +15,40 @@ namespace ai{
         return val;
     }
 
-    auto computeOptimalPath(const gameModel::Position &start, const gameModel::Position &destination,
+    auto computeOptimalPath(const std::shared_ptr<const gameModel::Player> &player, const gameModel::Position &destination,
                             const std::shared_ptr<const gameModel::Environment> &env) -> std::vector<gameModel::Position> {
-        if(start == destination) {
+        if(player->position == destination) {
             return {};
         }
 
-        auto f = [&destination](){};
+        auto expandFunction = [&env, &player](const aiTools::SearchNode<gameModel::Position> &node){
+            std::vector<aiTools::SearchNode<gameModel::Position>> ret;
+            ret.reserve(8);
+            auto parent = std::make_shared<aiTools::SearchNode<gameModel::Position>>(node);
+            for(const auto &pos : env->getAllLegalCellsAround(node.state, env->team1->hasMember(player))){
+                ret.emplace_back(pos, parent, node.pathCost + 1);
+            }
 
-        std::deque<aiTools::SearchNode<gameModel::Position>> visited;
-        std::vector<aiTools::SearchNode<gameModel::Position>> fringe;
+            return ret;
+        };
+
+        auto evalFunction = [&destination](const aiTools::SearchNode<gameModel::Position> &pos){
+            int g = pos.parent.has_value() ? pos.parent.value()->pathCost + 1: 1;
+            return g + gameController::getDistance(pos.state, destination);
+        };
+
+        aiTools::SearchNode<gameModel::Position> startNode(player->position, std::nullopt, 0);
+        aiTools::SearchNode<gameModel::Position> destinationNode(destination, std::nullopt, 0);
+        auto res = aiTools::aStarSearch<gameModel::Position>(startNode, destinationNode, expandFunction, evalFunction);
         std::vector<gameModel::Position> ret;
-        ret.reserve(gameController::getDistance(start, destination));
-        int pathLen = 0;
-        std::sort(fringe.begin(), fringe.end(), [&destination](const gameModel::Position &a, const gameModel::Position &b){
-            return gameController::getDistance(a, destination) < gameController::getDistance(b, destination);
-        });
-
-        while(!fringe.empty()){
-
+        if(res.has_value()){
+            ret.reserve(res->pathCost + 1);
+            ret.emplace_back(res->state);
+            auto parent = res->parent;
+            while(parent.has_value()){
+                ret.emplace_back((*parent)->state);
+                parent = (*parent)->parent;
+            }
         }
 
         return ret;
