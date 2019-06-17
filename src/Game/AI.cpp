@@ -39,7 +39,7 @@ namespace ai{
 
         aiTools::SearchNode<gameModel::Position> startNode(player->position, std::nullopt, 0);
         aiTools::SearchNode<gameModel::Position> destinationNode(destination, std::nullopt, 0);
-        auto res = aiTools::aStarSearch<gameModel::Position>(startNode, destinationNode, expandFunction, evalFunction);
+        auto res = aiTools::aStarSearch(startNode, destinationNode, expandFunction, evalFunction);
         std::vector<gameModel::Position> ret;
         if(res.has_value()){
             ret.reserve(res->pathCost + 1);

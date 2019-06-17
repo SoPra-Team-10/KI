@@ -37,19 +37,20 @@ namespace aiTools{
     /**
      * A*algorithm implemented as graph search
      * @tparam T Type of the SearchNode used
+     * @tparam EXP Type of expand function used, must return iterable of SearchNodes<T>
+     * @tparam F Type of evaluation function for nodes. Must return comparable value
      * @param Start initial state
      * @param Destination goal state
      * @param expand Function used for expanding nodes
      * @param f Function used for evaluating a node. A high value corresponds to low utility
      * @return The goal node with information about its parent or nothing if problem is impossible
      */
-    template <typename T>
+    template <typename T, typename EXP, typename F>
     auto aStarSearch(SearchNode<T> &start, SearchNode<T> &destination,
-            std::function<std::vector<SearchNode<T>>(const SearchNode<T>&)> expand,
-            std::function<int(const SearchNode<T>&)> f) -> std::optional<SearchNode<T>>{
+            EXP &expand, F &f) -> std::optional<SearchNode<T>>{
         std::deque<SearchNode<T>> visited;
         std::list<SearchNode<T>> fringe = {start};
-        std::optional<SearchNode<T>> ret = std::nullopt;
+        std::optional<SearchNode<T>> ret;
         while(!fringe.empty()){
             const auto currentNode = *fringe.begin();
             fringe.pop_front();
@@ -73,7 +74,7 @@ namespace aiTools{
             visited.emplace_back(currentNode);
             for(const auto &newNode : expand(currentNode)){
                 bool inserted = false;
-                for(auto it = fringe.begin(); it != fringe.end(); it++){
+                for(auto it = fringe.begin(); it != fringe.end(); ++it){
                     if(f(newNode) < f(*it)){
                         fringe.emplace(it, newNode);
                         inserted = true;
