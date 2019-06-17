@@ -22,14 +22,14 @@ namespace ai{
         }
 
         auto expandFunction = [&env, &player](const aiTools::SearchNode<gameModel::Position> &node){
-            std::vector<aiTools::SearchNode<gameModel::Position>> ret;
-            ret.reserve(8);
+            std::vector<aiTools::SearchNode<gameModel::Position>> path;
+            path.reserve(8);
             auto parent = std::make_shared<aiTools::SearchNode<gameModel::Position>>(node);
             for(const auto &pos : env->getAllLegalCellsAround(node.state, env->team1->hasMember(player))){
-                ret.emplace_back(pos, parent, node.pathCost + 1);
+                path.emplace_back(pos, parent, node.pathCost + 1);
             }
 
-            return ret;
+            return path;
         };
 
         auto evalFunction = [&destination](const aiTools::SearchNode<gameModel::Position> &pos){
