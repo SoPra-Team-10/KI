@@ -18,13 +18,12 @@ namespace aiTools{
     class SearchNode {
     public:
         SearchNode(T state, std::optional<std::shared_ptr<SearchNode<T>>> parent, int pathCost) :
-            state(state), parent(parent), pathCost(pathCost) {}
+            state(std::move(state)), parent(std::move(parent)), pathCost(pathCost) {}
 
-        T state;
+        const T state;
         std::optional<std::shared_ptr<SearchNode<T>>> parent;
         int pathCost = 0;
         bool operator==(const SearchNode<T> &other) const;
-
     };
 
 
@@ -45,9 +44,9 @@ namespace aiTools{
      * @param f Function used for evaluating a node. A high value corresponds to low utility
      * @return The goal node with information about its parent or nothing if problem is impossible
      */
-    template <typename T, typename EXP, typename F>
-    auto aStarSearch(SearchNode<T> &start, SearchNode<T> &destination,
-            EXP &expand, F &f) -> std::optional<SearchNode<T>>{
+    template <typename T, typename Exp, typename F>
+    auto aStarSearch(const SearchNode<T> &start, const SearchNode<T> &destination,
+            const Exp &expand, const F &f) -> std::optional<SearchNode<T>>{
         std::deque<SearchNode<T>> visited;
         std::list<SearchNode<T>> fringe = {start};
         std::optional<SearchNode<T>> ret;
@@ -55,7 +54,7 @@ namespace aiTools{
             const auto currentNode = *fringe.begin();
             fringe.pop_front();
             if(currentNode == destination){
-                ret = currentNode;
+                ret.emplace(currentNode);
                 break;
             }
 
