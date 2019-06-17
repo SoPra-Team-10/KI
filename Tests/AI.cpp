@@ -14,6 +14,7 @@ TEST(ai_test, optimal_path){
     auto path = ai::computeOptimalPath(env->team2->seeker, {8, 6}, env);
     EXPECT_EQ(path.size(), 4);
     EXPECT_EQ(path.front(), gameModel::Position(8, 6));
+    EXPECT_EQ(path.back(), env->team2->seeker->position);
     for(unsigned long i = 1; i < path.size(); i++){
         EXPECT_EQ(gameController::getDistance(path[i - 1], path[i]), 1);
     }
@@ -24,6 +25,7 @@ TEST(ai_test, optimal_path_long){
     auto path = ai::computeOptimalPath(env->team2->keeper, {0, 4}, env);
     EXPECT_EQ(path.size(), 14);
     EXPECT_EQ(path.front(), gameModel::Position(0, 4));
+    EXPECT_EQ(path.back(), env->team2->keeper->position);
     for(unsigned long i = 1; i < path.size(); i++){
         EXPECT_EQ(gameController::getDistance(path[i - 1], path[i]), 1);
     }
@@ -36,6 +38,7 @@ TEST(ai_test, optimal_path_blocked){
     auto path = ai::computeOptimalPath(env->team2->keeper, {15, 9}, env);
     EXPECT_EQ(path.size(), 7);
     EXPECT_EQ(path.front(), gameModel::Position(15, 9));
+    EXPECT_EQ(path.back(), env->team2->keeper->position);
     for(unsigned long i = 1; i < path.size(); i++){
         EXPECT_EQ(gameController::getDistance(path[i - 1], path[i]), 1);
     }
@@ -52,6 +55,7 @@ TEST(ai_test, optimal_path_blocked_complex){
     auto path = ai::computeOptimalPath(env->team2->keeper, {9, 4}, env);
     EXPECT_EQ(path.size(), 5);
     EXPECT_EQ(path.front(), gameModel::Position(9, 4));
+    EXPECT_EQ(path.back(), env->team2->keeper->position);
     for(unsigned long i = 1; i < path.size(); i++){
         EXPECT_EQ(gameController::getDistance(path[i - 1], path[i]), 1);
     }
