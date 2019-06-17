@@ -42,7 +42,7 @@ namespace aiTools {
         double val = 0;
 
         val += evalSeeker(team->seeker, env);
-        val += evalKeeper(team->keeper, env);
+        val += evalKeeper(team->keeper, env,);
         val += evalChaser(team->chasers[0], env);
         val += evalChaser(team->chasers[1], env);
         val += evalChaser(team->chasers[2], env);
@@ -66,13 +66,22 @@ namespace aiTools {
         double val = 0;
         int scoreDiff = env->team1->score - env->team2->score;
         if (keeper->isFined) return val;
+        //If keeper has quaffle
         if (keeper->position == env->quaffle->position) {
             val += 100;
-            if (isKeeperInKeeperZone) {
-                if (scoreDiff > -40) val += 100;
+            if (env->isPlayerInOwnRestrictedZone(keeper)) {
+                if (scoreDiff > -40) val += 20;
                 if (scoreDiff >= 40) val += 500;
             } else {
-                //TODO: rate his chance to score a goal
+                if(scoreDiff < -30){
+                    val += 100 + getHighestGoalRate(env, keeper) * 10;
+                }
+                else if(scoreDiff > 30){
+                    val += 200 + getHighestGoalRate(env, keeper);
+                }
+                else{
+                    val += 100 + getHighestGoalRate(env, keeper) * 2;
+                }
             }
         } else {
 
@@ -84,10 +93,30 @@ namespace aiTools {
     double evalChaser(const std::shared_ptr<gameModel::Chaser> chaser,
                       const std::shared_ptr<gameModel::Environment> env) {
         double val = 0;
-        int scoreDiff = env->team1->score - env->team2->score;
+
         if (chaser->isFined) return val;
+
+        int scoreDiff = 0;
+        if(env->team1->hasMember(chaser)){
+            scoreDiff = env->team1->score - env->team2->score;
+        }
+        else{
+            scoreDiff = env->team2->score - env->team1->score;
+        }
+        //If Chaser holds quaffle
         if (chaser->position == env->quaffle->position) {
-            val += 100 + getHighestGoalRate(env, chaser);
+            if(scoreDiff < -30){
+                val += 100 + getHighestGoalRate(env, chaser) * 10;
+            }
+            else if(scoreDiff > 30){
+                val += 200 + getHighestGoalRate(env, chaser);
+            }
+            else{
+                val += 100 + getHighestGoalRate(env, chaser) * 2;
+            }
+        }
+        else{
+            val += 100 / gameController::getDistance(chaser->position, env->quaffle->position);
         }
         return val;
     }
