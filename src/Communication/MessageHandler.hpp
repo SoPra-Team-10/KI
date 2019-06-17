@@ -43,7 +43,7 @@ namespace communication {
          */
         const util::Listener<> closeListener;
     private:
-        void receiveEvent(std::string msg);
+        void receiveEvent(const std::string& msg);
         util::Logging &log;
         network::WebSocketClient socketClient;
     };
