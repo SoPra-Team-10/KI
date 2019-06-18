@@ -7,19 +7,8 @@
 #include <SopraGameLogic/GameController.h>
 
 namespace aiTools {
-    double evalState(const std::shared_ptr<gameModel::Environment> environment, bool isLeft) {
+    double evalState(const std::shared_ptr<gameModel::Environment> env, bool isLeft, bool goalScoredThisRound) {
         double val = 0;
-
-        //TODO: Make this a useful function
-        gameModel::Position quafflePos;
-        gameModel::Position snitchPos;
-        std::shared_ptr<gameModel::Environment> env;
-        int scoreDiff;
-
-        env = environment->clone();
-        quafflePos = environment->quaffle->position;
-        snitchPos = environment->snitch->position;
-        scoreDiff = env->team1->score - env->team2->score;
 
         double valTeam1 = evalTeam(env->team1,
                                    env);
@@ -29,9 +18,43 @@ namespace aiTools {
 
         double valBludgers = evalBludgers(env);
 
-        if (isLeft) val = valTeam1 - valTeam2 + valBludgers;
-        else val = valTeam2 - valTeam1 - valBludgers;
+        //Assume the KI plays left
+        val = valTeam1 - valTeam2 + valBludgers;
 
+        int bannedTeam1 = 0;
+        int bannedTeam2 = 0;
+        for(int i = 0; i < 7; i++){
+            if(env->team1->getAllPlayers()[i]->isFined) bannedTeam1++;
+            if(env->team2->getAllPlayers()[i]->isFined) bannedTeam2++;
+        }
+        if(bannedTeam1 >= 3){
+            val -= 2000;
+        }
+        else if(goalScoredThisRound){
+            val += bannedTeam1 * 150;
+        }
+        if(bannedTeam2 >= 3){
+            val += 2000;
+        }
+        else if(goalScoredThisRound){
+            val -= bannedTeam2 * 150;
+        }
+
+        int scoreDiff = env->team1->score - env->team2->score;
+        if(scoreDiff < -30){
+            val -= 700 + scoreDiff * 10;
+        }
+        else if(scoreDiff > 30){
+            val += 700 + scoreDiff * 10;
+        }
+        else{
+            val += scoreDiff * 15;
+        }
+
+        //If the KI does not play left, return negative val
+        if(!isLeft){
+            val = val * (-1);
+        }
 
         return val;
     }
@@ -42,7 +65,7 @@ namespace aiTools {
         double val = 0;
 
         val += evalSeeker(team->seeker, env);
-        val += evalKeeper(team->keeper, env,);
+        val += evalKeeper(team->keeper, env);
         val += evalChaser(team->chasers[0], env);
         val += evalChaser(team->chasers[1], env);
         val += evalChaser(team->chasers[2], env);
@@ -54,9 +77,25 @@ namespace aiTools {
     double evalSeeker(const std::shared_ptr<gameModel::Seeker> seeker,
                       const std::shared_ptr<gameModel::Environment> env) {
         double val = 0;
-        int scoreDiff = env->team1->score - env->team2->score;
+        int scoreDiff = 0;
+        if(env->team1->hasMember(seeker)){
+            scoreDiff = env->team1->score - env->team2->score;
+        }
+        else{
+            scoreDiff = env->team2->score - env->team1->score;
+        }
         if (seeker->isFined) return val;
-        val = 1000 / gameController::getDistance(seeker->position, env->snitch->position) + 1;
+        if(scoreDiff < -30){
+            if(seeker->position == env->snitch->position){
+                val = -1000;
+            }
+            else{
+                val = 200 / gameController::getDistance(seeker->position, env->snitch->position);
+            }
+        }
+        else {
+            val = 1000 / gameController::getDistance(seeker->position, env->snitch->position) + 1;
+        }
 
         return val;
     }
@@ -64,7 +103,13 @@ namespace aiTools {
     double evalKeeper(const std::shared_ptr<gameModel::Keeper> keeper,
                       const std::shared_ptr<gameModel::Environment> env) {
         double val = 0;
-        int scoreDiff = env->team1->score - env->team2->score;
+        int scoreDiff = 0;
+        if(env->team1->hasMember(keeper)){
+            scoreDiff = env->team1->score - env->team2->score;
+        }
+        else{
+            scoreDiff = env->team2->score - env->team1->score;
+        }
         if (keeper->isFined) return val;
         //If keeper has quaffle
         if (keeper->position == env->quaffle->position) {
