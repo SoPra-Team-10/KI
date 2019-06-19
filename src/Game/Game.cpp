@@ -23,10 +23,10 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
     P b2Pos{6, 7};
     matchConfig = matchStart.getMatchConfig();
     if(matchStart.getLeftTeamUserName() == myConfig.getTeamName()){
-        side = TeamSide::LEFT;
+        side = gameModel::TeamSide::LEFT;
         theirConfig = matchStart.getRightTeamConfig();
     } else {
-        side = TeamSide::RIGHT;
+        side = gameModel::TeamSide::RIGHT;
         theirConfig = matchStart.getLeftTeamConfig();
         mirrorPos(seekerPos);
         mirrorPos(keeperPos);
@@ -62,8 +62,8 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         pileOfShit.emplace_back(std::make_shared<gameModel::CubeOfShit>(gameModel::Position{pieceOfShit.first, pieceOfShit.second}));
     }
 
-    auto team1 = teamFromSnapshot(snapshot.getLeftTeam(), TeamSide::LEFT);
-    auto team2 = teamFromSnapshot(snapshot.getRightTeam(), TeamSide::RIGHT);
+    auto team1 = teamFromSnapshot(snapshot.getLeftTeam(), gameModel::TeamSide::LEFT);
+    auto team2 = teamFromSnapshot(snapshot.getRightTeam(), gameModel::TeamSide::RIGHT);
 
     if(!currentEnv.has_value()){
         currentEnv = std::make_shared<gameModel::Environment>(gameModel::Config{matchConfig}, team1, team2);
@@ -82,11 +82,11 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &)
     return communication::messages::request::DeltaRequest();
 }
 
-auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, TeamSide teamSide) const ->
+auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
         std::shared_ptr<gameModel::Team> {
     using ID = communication::messages::types::EntityId;
     auto teamConf = teamSide == side ? myConfig : theirConfig;
-    bool left = teamSide == TeamSide::LEFT;
+    bool left = teamSide == gameModel::TeamSide::LEFT;
     gameModel::Seeker seeker(gameModel::Position{teamSnapshot.getSeekerX(), teamSnapshot.getSeekerY()}, teamConf.getSeeker().getBroom(),
             left ? ID::LEFT_SEEKER : ID::RIGHT_SEEKER);
     seeker.knockedOut = teamSnapshot.isSeekerKnockout();
@@ -152,7 +152,7 @@ auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapsh
     }
 
     gameModel::Fanblock fans(teleport, rangedAttack, impulse, snitchPush, blockCell);
-    return std::make_shared<gameModel::Team>(seeker, keeper, beaters, chasers, teamSnapshot.getPoints(), fans);
+    return std::make_shared<gameModel::Team>(seeker, keeper, beaters, chasers, teamSnapshot.getPoints(), fans, teamSide);
 }
 
 void Game::mirrorPos(gameModel::Position &pos) const{

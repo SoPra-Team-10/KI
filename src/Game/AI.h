@@ -7,23 +7,24 @@
 
 #include "Game.hpp"
 namespace ai {
-    double evalState(const std::shared_ptr<gameModel::Environment> environment, bool isLeft);
+    double evalState(const std::shared_ptr<const gameModel::Environment> &environment, gameModel::TeamSide mySide, bool goalScoredThisRound);
 
-    double evalTeam(const std::shared_ptr<gameModel::Team> team,
-                    const std::shared_ptr<gameModel::Environment> env);
+    double evalTeam(const std::shared_ptr<const gameModel::Team> &team,
+                    const std::shared_ptr<gameModel::Environment> &env);
 
-    double evalSeeker(const std::shared_ptr<gameModel::Seeker> seeker,
-                      const std::shared_ptr<gameModel::Environment> env);
+    double evalSeeker(const std::shared_ptr<const gameModel::Seeker> &seeker,
+                      const std::shared_ptr<const gameModel::Environment> &env);
 
-    double evalKeeper(const std::shared_ptr<gameModel::Keeper> keeper,
-                      const std::shared_ptr<gameModel::Environment> env);
+    double evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper,
+                      const std::shared_ptr<gameModel::Environment> &env);
 
-    double evalChaser(const std::shared_ptr<gameModel::Chaser> chaser,
-                      const std::shared_ptr<gameModel::Environment> env);
+    double evalChaser(const std::shared_ptr<gameModel::Chaser> &chaser,
+                      const std::shared_ptr<gameModel::Environment> &env);
 
-    double evalBludgers(const std::shared_ptr<gameModel::Environment> env);
+    double evalBludgers(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide);
 
-    double getHighestGoalRate(std::shared_ptr<gameModel::Environment> env, std::shared_ptr<gameModel::Player> actor);
+    double getHighestGoalRate(const std::shared_ptr<gameModel::Environment> &env,
+            const std::shared_ptr<gameModel::Player> &actor);
 
     /**
      * Computes the optimal path from start to destination avoiding possible fouls using A*-search

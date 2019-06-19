@@ -8,60 +8,55 @@
 #include <SopraGameLogic/GameController.h>
 
 namespace ai{
-    double evalState(const std::shared_ptr<gameModel::Environment> env, bool isLeft, bool goalScoredThisRound) {
+
+    double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound) {
+        constexpr auto disqPenalty = 2000;
+        constexpr auto unbanDiscountFactor = 150;
+        constexpr auto maxBanCount = 3;
+        constexpr auto farBehindPenalty = 700;
+        constexpr auto scoreDiffFarBehindDiscountFactor = 10;
+        constexpr auto scoreDiffDiscountFactor = 15;
+
         double val = 0;
-
-        double valTeam1 = evalTeam(env->team1,
-                                   env);
-
-        double valTeam2 = evalTeam(env->team2,
-                                   env);
-
-        double valBludgers = evalBludgers(env);
+        auto localEnv = env->clone();
+        auto valTeam1 = evalTeam(localEnv->getTeam(gameModel::TeamSide::LEFT), localEnv);
+        auto valTeam2 = evalTeam(localEnv->getTeam(gameModel::TeamSide::RIGHT), localEnv);
+        auto valBludgers = evalBludgers(localEnv, mySide);
 
         //Assume the KI plays left
         val = valTeam1 - valTeam2 + valBludgers;
 
-        int bannedTeam1 = 0;
-        int bannedTeam2 = 0;
-        for(int i = 0; i < 7; i++){
-            if(env->team1->getAllPlayers()[i]->isFined) bannedTeam1++;
-            if(env->team2->getAllPlayers()[i]->isFined) bannedTeam2++;
-        }
-        if(bannedTeam1 >= 3){
-            val -= 2000;
-        }
-        else if(goalScoredThisRound){
-            val += bannedTeam1 * 150;
-        }
-        if(bannedTeam2 >= 3){
-            val += 2000;
-        }
-        else if(goalScoredThisRound){
-            val -= bannedTeam2 * 150;
+        int bannedTeam1 = localEnv->getTeam(gameModel::TeamSide::LEFT)->numberOfBannedMembers();
+        int bannedTeam2 = localEnv->getTeam(gameModel::TeamSide::RIGHT)->numberOfBannedMembers();
+
+        if(bannedTeam1 >= maxBanCount) {
+            val -= disqPenalty;
+        } else if(goalScoredThisRound) {
+            val += bannedTeam1 * unbanDiscountFactor;
         }
 
-        int scoreDiff = env->team1->score - env->team2->score;
-        if(scoreDiff < -30){
-            val -= 700 + scoreDiff * 10;
+        if(bannedTeam2 >= maxBanCount) {
+            val += disqPenalty;
+        } else if(goalScoredThisRound) {
+            val -= bannedTeam2 * unbanDiscountFactor;
         }
-        else if(scoreDiff > 30){
-            val += 700 + scoreDiff * 10;
-        }
-        else{
-            val += scoreDiff * 15;
+
+        int scoreDiff = localEnv->getTeam(gameModel::TeamSide::LEFT)->score -
+                            localEnv->getTeam(gameModel::TeamSide::RIGHT)->score;
+        if(scoreDiff < -gameController::SNITCH_POINTS) {
+            val -= farBehindPenalty + scoreDiff * scoreDiffFarBehindDiscountFactor;
+        } else if(scoreDiff > gameController::SNITCH_POINTS) {
+            val += farBehindPenalty + scoreDiff * scoreDiffFarBehindDiscountFactor;
+        } else {
+            val += scoreDiff * scoreDiffDiscountFactor;
         }
 
         //If the KI does not play left, return negative val
-        if(!isLeft){
-            val = val * (-1);
-        }
-
-        return val;
+        return mySide == gameModel::TeamSide::LEFT ? val : -val;
     }
 
-    double evalTeam(const std::shared_ptr<gameModel::Team> team,
-                    const std::shared_ptr<gameModel::Environment> env) {
+    double evalTeam(const std::shared_ptr<const gameModel::Team> &team,
+                    const std::shared_ptr<gameModel::Environment> &env) {
 
         double val = 0;
 
@@ -75,160 +70,178 @@ namespace ai{
 
     }
 
-    double evalSeeker(const std::shared_ptr<gameModel::Seeker> seeker,
-                      const std::shared_ptr<gameModel::Environment> env) {
+    double evalSeeker(const std::shared_ptr<const gameModel::Seeker> &seeker,
+                      const std::shared_ptr<const gameModel::Environment> &env) {
+        constexpr auto gameLosePenalty = 1000;
+        constexpr auto baseSnitchdistanceDiscount = 200.0;
+        constexpr auto winSnitchDistanceDiscount = 1000.0;
+
         double val = 0;
         int scoreDiff = 0;
-        if(env->team1->hasMember(seeker)){
+        if(env->team1->hasMember(seeker)) {
             scoreDiff = env->team1->score - env->team2->score;
-        }
-        else{
+        } else {
             scoreDiff = env->team2->score - env->team1->score;
         }
-        if (seeker->isFined) return val;
-        if(scoreDiff < -30){
-            if(seeker->position == env->snitch->position){
-                val = -1000;
-            }
-            else{
-                val = 200 / gameController::getDistance(seeker->position, env->snitch->position);
-            }
+
+        if(seeker->isFined) {
+            return val;
         }
-        else {
-            val = 1000 / gameController::getDistance(seeker->position, env->snitch->position) + 1;
+
+        if(env->snitch->exists){
+            if(scoreDiff < -gameController::SNITCH_POINTS){
+                if(seeker->position == env->snitch->position){
+                    val = -gameLosePenalty * env->config.gameDynamicsProbs.catchSnitch;
+                }
+                else{
+                    val = baseSnitchdistanceDiscount / gameController::getDistance(seeker->position, env->snitch->position);
+                }
+            }
+            else {
+                val = winSnitchDistanceDiscount / (gameController::getDistance(seeker->position, env->snitch->position) + 1);
+            }
         }
 
         return val;
     }
 
-    double evalKeeper(const std::shared_ptr<gameModel::Keeper> keeper,
-                      const std::shared_ptr<gameModel::Environment> env) {
+    double evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper,
+                      const std::shared_ptr<gameModel::Environment> &env) {
+        constexpr auto holdsQuaffleBaseDiscount = 100;
+        constexpr auto keeperBonusEvenWinChance = 20;
+        constexpr auto keeperBonusHighWinChance = 500;
+        constexpr auto goalChanceDiscountFactorBehind = 100;
+        constexpr auto goalChanceDiscountFactorInLead = 20;
+        constexpr auto goalChanceDiscountFactorEven = 50;
+        constexpr auto baseQuaffleDistanceDiscount = 100.0;
+
         double val = 0;
         int scoreDiff = 0;
-        if(env->team1->hasMember(keeper)){
+        if(env->team1->hasMember(keeper)) {
             scoreDiff = env->team1->score - env->team2->score;
-        }
-        else{
+        } else {
             scoreDiff = env->team2->score - env->team1->score;
         }
-        if (keeper->isFined) return val;
+
+        if (keeper->isFined) {
+            return val;
+        }
+
         //If keeper has quaffle
         if (keeper->position == env->quaffle->position) {
-            val += 100;
+            val += holdsQuaffleBaseDiscount;
             if (env->isPlayerInOwnRestrictedZone(keeper)) {
-                if (scoreDiff > -40) val += 20;
-                if (scoreDiff >= 40) val += 500;
+                if (scoreDiff >= -gameController::SNITCH_POINTS) {
+                    val += keeperBonusEvenWinChance;
+                } else if (scoreDiff > gameController::SNITCH_POINTS) {
+                    val += keeperBonusHighWinChance;
+                }
             } else {
-                if(scoreDiff < -30){
-                    val += 100 + getHighestGoalRate(env, keeper) * 10;
-                }
-                else if(scoreDiff > 30){
-                    val += 200 + getHighestGoalRate(env, keeper);
-                }
-                else{
-                    val += 100 + getHighestGoalRate(env, keeper) * 2;
+                if(scoreDiff < -gameController::SNITCH_POINTS) {
+                    val += getHighestGoalRate(env, keeper) * goalChanceDiscountFactorBehind;
+                } else if(scoreDiff > gameController::SNITCH_POINTS) {
+                    val += getHighestGoalRate(env, keeper) * goalChanceDiscountFactorInLead;
+                } else {
+                    val += getHighestGoalRate(env, keeper) * goalChanceDiscountFactorEven;
                 }
             }
         } else {
-
+            val += baseQuaffleDistanceDiscount / gameController::getDistance(keeper->position, env->quaffle->position);
         }
 
         return val;
     }
 
-    double evalChaser(const std::shared_ptr<gameModel::Chaser> chaser,
-                      const std::shared_ptr<gameModel::Environment> env) {
+    double evalChaser(const std::shared_ptr<gameModel::Chaser> &chaser,
+                      const std::shared_ptr<gameModel::Environment> &env) {
+        constexpr auto goalChanceDiscountFactorBehind = 100;
+        constexpr auto goalChanceDiscountFactorInLead = 20;
+        constexpr auto goalChanceDiscountFactorEven = 50;
+        constexpr auto baseQuaffleDistanceDiscount = 100.0;
+        constexpr auto holdsQuaffleBaseDiscount = 100;
+
         double val = 0;
-
-        if (chaser->isFined) return val;
-
         int scoreDiff = 0;
+
+        if (chaser->isFined) {
+            return val;
+        }
+
         if(env->team1->hasMember(chaser)){
             scoreDiff = env->team1->score - env->team2->score;
-        }
-        else{
+        } else {
             scoreDiff = env->team2->score - env->team1->score;
         }
+
         //If Chaser holds quaffle
         if (chaser->position == env->quaffle->position) {
-            if(scoreDiff < -30){
-                val += 100 + getHighestGoalRate(env, chaser) * 10;
+            val += holdsQuaffleBaseDiscount;
+            if(scoreDiff < -gameController::SNITCH_POINTS) {
+                val += getHighestGoalRate(env, chaser) * goalChanceDiscountFactorBehind;
+            } else if(scoreDiff > gameController::SNITCH_POINTS) {
+                val += getHighestGoalRate(env, chaser) * goalChanceDiscountFactorInLead;
+            } else {
+                val += getHighestGoalRate(env, chaser) * goalChanceDiscountFactorEven;
             }
-            else if(scoreDiff > 30){
-                val += 200 + getHighestGoalRate(env, chaser);
-            }
-            else{
-                val += 100 + getHighestGoalRate(env, chaser) * 2;
-            }
-        }
-        else{
-            val += 100 / gameController::getDistance(chaser->position, env->quaffle->position);
+        } else {
+            val += baseQuaffleDistanceDiscount / gameController::getDistance(chaser->position, env->quaffle->position);
         }
         return val;
     }
 
-    double evalBludgers(const std::shared_ptr<gameModel::Environment> env) {
-        double val = 0;
+    double evalBludgers(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide) {
+        constexpr auto keeperBaseThreat = 10.0;
+        constexpr auto seekerBaseThreat = 20.0;
+        constexpr auto chaserBaseThreat = 10.0;
+        constexpr auto beaterBaseThreat = 20.0;
 
-        std::array<std::shared_ptr<gameModel::Bludger>, 2> bludgers = env->bludgers;
-        std::shared_ptr<gameModel::Team> team1 = env->team1;
-        std::shared_ptr<gameModel::Team> team2 = env->team2;
+        auto calcThreat = [&env, &mySide](const std::shared_ptr<const gameModel::Team> &team){
+            double val = 0;
+            for(const auto &bludger : env->bludgers){
+                const auto &bPos = bludger->position;
+                //eval team1
+                if (team->keeper->position != bludger->position) {
+                    val -= keeperBaseThreat / gameController::getDistance(bPos, env->team1->keeper->position);
+                }
 
-        for (int i = 0; i < 2; i++) {
-            gameModel::Position bPos = bludgers[i]->position;
+                if (team->seeker->position != bPos) {
+                    val -= seekerBaseThreat / gameController::getDistance(bPos, env->team1->seeker->position);
+                }
 
-            //eval team1
-            if (team1->keeper->position != bPos) val -= 10 /
-                                                        (gameController::getDistance(bPos, team1->keeper->position) +
-                                                         1);
-            if (team1->seeker->position != bPos) val -= 20 /
-                                                        (gameController::getDistance(bPos, team1->seeker->position) +
-                                                         1);
+                for (const auto &chaser : team->chasers) {
+                    if (chaser->position != bPos) {
+                        val -= chaserBaseThreat / gameController::getDistance(bPos, chaser->position);
+                    }
+                }
 
-            for (int j = 0; j < 3; j++) {
-                if (team1->chasers[j]->position != bPos) val -= 10 / (gameController::getDistance(bPos,
-                                                                                                  team1->chasers[j]->position) +
-                                                                      1);
+                for (const auto &beater : team->beaters) {
+                    if (beater->position != bPos) {
+                        val += beaterBaseThreat / gameController::getDistance(bPos, beater->position);
+                    }
+                }
             }
-            for (int j = 0; j < 2; j++) {
-                if (team1->beaters[j]->position != bPos) val += 20 / (gameController::getDistance(bPos,
-                                                                                                  team1->beaters[j]->position) +
-                                                                      1);
-            }
 
-            //eval team2
-            if (team2->keeper->position != bPos) val += 10 /
-                                                        (gameController::getDistance(bPos, team2->keeper->position) +
-                                                         1);
-            if (team2->seeker->position != bPos) val += 20 /
-                                                        (gameController::getDistance(bPos, team2->seeker->position) +
-                                                         1);
+            return team->side == mySide ? val : -val;
+        };
 
-            for (int j = 0; j < 3; j++) {
-                if (team2->chasers[j]->position != bPos) val += 10 / (gameController::getDistance(bPos,
-                                                                                                  team2->chasers[j]->position) +
-                                                                      1);
-            }
-            for (int j = 0; j < 2; j++) {
-                if (team2->beaters[j]->position != bPos) val -= 20 / (gameController::getDistance(bPos,
-                                                                                                  team2->beaters[j]->position) +
-                                                                      1);
-            }
-        }
-        return val;
+
+        return calcThreat(env->team1) + calcThreat(env->team2);
     }
 
-    double getHighestGoalRate(std::shared_ptr<gameModel::Environment> env, std::shared_ptr<gameModel::Player> actor) {
+    double getHighestGoalRate(const std::shared_ptr<gameModel::Environment> &env,
+            const std::shared_ptr<gameModel::Player> &actor) {
         double chance = 0;
         auto goalPos = env->getGoalsRight();
 
-        if (env->team2->hasMember(actor)) {
+        if (env->getTeam(actor)->side == gameModel::TeamSide::LEFT) {
             goalPos = env->getGoalsLeft();
         }
 
-        for (int i = 0; i < 3; i++) {
-            gameController::Shot shotSim = gameController::Shot(env, actor, env->quaffle, goalPos[i]);
-            if (shotSim.successProb() > chance) chance = shotSim.successProb();
+        for (const auto &goal : goalPos) {
+            gameController::Shot shotSim(env, actor, env->quaffle, goal);
+            if (shotSim.successProb() > chance) {
+                chance = shotSim.successProb();
+            }
         }
 
         return chance;
