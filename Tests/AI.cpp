@@ -7,6 +7,7 @@
 #include <Game/AI.h>
 #include "setup.h"
 #include <SopraGameLogic/GameController.h>
+#include <SopraGameLogic/GameModel.h>
 
 
 TEST(ai_test, optimal_path){
@@ -66,3 +67,17 @@ TEST(ai_test, optimal_path_impossible){
     auto path = ai::computeOptimalPath(env->team2->seeker, env->team1->keeper->position, env);
     EXPECT_EQ(path.size(), 0);
 }
+
+TEST(ai_test, ai_left_right_equal){
+    auto env = setup::createSymmetricEnv();
+    auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false);
+    auto valRight = ai::evalState(eng, gameModel::TeamSide::RIGHT, false);
+    EXPECT_EQ(valLeft, valRight);
+}
+
+TEST(ai_test, ai_left_right_equal_zero){
+auto env = setup::createSymmetricEnv();
+auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false);
+EXPECT_EQ(valLeft, 0);
+}
+
