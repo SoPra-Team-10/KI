@@ -112,11 +112,11 @@ namespace ai{
                 if(gameController::getDistance(seeker->position, env->snitch->position) > 6) {
                     val = winSnitchDistanceDiscount / (gameController::getDistance(seeker->position, env->snitch->position) + 1);
                 } else {
-                    val = winSnitchDistanceDiscount / (computeOptimalPath(seeker, env->snitch->position, env) + 1);
+                    val = winSnitchDistanceDiscount / (computeOptimalPath(seeker, env->snitch->position, env).size() + 1);
                 }
             }
         } else{
-            val += nearCenterDiscount / (gameController::getDistance(seeker->position, Position(centerX, centerY)) + 1);
+            val += nearCenterDiscount / (gameController::getDistance(seeker->position, gameModel::Position(centerX, centerY)) + 1);
         }
 
         return val;
@@ -174,11 +174,11 @@ namespace ai{
         } else {
             val += baseQuaffleDistanceDiscount / gameController::getDistance(keeper->position, env->quaffle->position);
             if(scoreDiff < -gameController::SNITCH_POINTS) {
-                val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorBehind;
+                val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorBehind;
             } else if(scoreDiff > gameController::SNITCH_POINTS) {
-                val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorInLead;
+                val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorInLead;
             } else {
-                val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorEven;
+                val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorEven;
             }
         }
 
