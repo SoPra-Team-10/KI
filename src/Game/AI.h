@@ -6,6 +6,7 @@
 #define KI_AI_H
 
 #include <SopraGameLogic/GameModel.h>
+#include <SopraMessages/Message.hpp>
 
 namespace ai{
     int evalState();
@@ -20,6 +21,29 @@ namespace ai{
      */
     auto computeOptimalPath(const std::shared_ptr<const gameModel::Player> &player, const gameModel::Position &destination,
                             const std::shared_ptr<const gameModel::Environment> &env) -> std::vector<gameModel::Position>;
+
+    /**
+     * evaluates if it is necessary to use a fan
+     * @param env is the actual Environment
+     * @param next gives the next EntityID
+     * @return returns the new DeltaRequest
+     */
+    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env, communication::messages::broadcast::Next &next)->const communication::messages::request::DeltaRequest;
+
+    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
+
+    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env) -> std::optional<communication::messages::types::EntityId>;
+
+    bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
+
+    bool isGoblinUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
+
+    bool isWombatUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
+
+    auto getAllCrossedCells(const gameModel::Position &startPoint, const gameModel::Position &endPoint) ->
+    std::vector<gameModel::Position>;
+
+    auto getDistance(const gameModel::Position &startPoint, const gameModel::Position &endPoint) -> int;
 }
 
 #endif //KI_AI_H
