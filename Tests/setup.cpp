@@ -37,31 +37,28 @@ auto setup::createEnv(const gameModel::Config &config) -> std::shared_ptr<gameMo
 }
 
 auto setup::createSymmetricEnv() -> std::shared_ptr<gameModel::Environment> {
-    using ID = communication::messages::types::EntityId;
-    gameModel::Chaser c1({6, 0}, {}, ID::LEFT_CHASER1);
-    gameModel::Chaser c2({6, 1}, {}, ID::LEFT_CHASER2);
-    gameModel::Chaser c3({6, 2}, {}, ID::LEFT_CHASER3);
-    gameModel::Chaser c4({10, 0}, {}, ID::RIGHT_CHASER1);
-    gameModel::Chaser c5({10, 1}, {}, ID::RIGHT_CHASER2);
-    gameModel::Chaser c6({10, 2}, {}, ID::RIGHT_CHASER3);
 
-    gameModel::Beater b1({6, 4}, {}, ID::LEFT_BEATER1);
-    gameModel::Beater b2({6, 5}, {}, ID::LEFT_BEATER2);
-    gameModel::Beater b3({10, 4}, {}, ID::RIGHT_BEATER1);
-    gameModel::Beater b4({10, 5}, {}, ID::RIGHT_BEATER2);
+    auto env = createEnv();
 
-    gameModel::Seeker s1({6, 6}, {}, ID::LEFT_SEEKER);
-    gameModel::Seeker s2({10, 6}, {}, ID::RIGHT_SEEKER);
+    env->team1->keeper->position = {6, 7};
+    env->team2->keeper->position = {10, 7};
 
-    gameModel::Keeper k1({6, 7}, {}, ID::LEFT_KEEPER);
-    gameModel::Keeper k2({10, 7}, {}, ID::RIGHT_KEEPER);
+    env->team1->seeker->position = {6, 6};
+    env->team2->seeker->position = {10, 6};
 
-    gameModel::Fanblock f(1, 2, 2, 1, 1);
+    env->team1->beaters[0]->position = {6, 4};
+    env->team1->beaters[1]->position = {6, 5};
+    env->team2->beaters[0]->position = {10, 4};
+    env->team2->beaters[1]->position = {10, 5};
 
-    auto t1 = std::make_shared<gameModel::Team>(s1, k1, std::array<gameModel::Beater, 2>{b1, b2}, std::array<gameModel::Chaser, 3>{c1, c2, c3}, 0, f, gameModel::TeamSide::LEFT);
-    auto t2 = std::make_shared<gameModel::Team>(s2, k2, std::array<gameModel::Beater, 2>{b3, b4}, std::array<gameModel::Chaser, 3>{c4, c5, c6}, 0, f, gameModel::TeamSide::RIGHT);
+    env->team1->chasers[0]->position = {6, 0};
+    env->team1->chasers[1]->position = {6, 1};
+    env->team1->chasers[2]->position = {6, 2};
+    env->team2->chasers[0]->position = {10, 0};
+    env->team2->chasers[1]->position = {10, 1};
+    env->team2->chasers[2]->position = {10, 2};
 
-    return std::make_shared<gameModel::Environment>({0, {}, {}, {}}, t1, t2);
+    return env;
 }
 
 

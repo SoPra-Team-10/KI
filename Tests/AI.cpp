@@ -71,7 +71,7 @@ TEST(ai_test, optimal_path_impossible){
 TEST(ai_test, ai_left_right_equal){
     auto env = setup::createSymmetricEnv();
     auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false);
-    auto valRight = ai::evalState(eng, gameModel::TeamSide::RIGHT, false);
+    auto valRight = ai::evalState(env, gameModel::TeamSide::RIGHT, false);
     EXPECT_EQ(valLeft, valRight);
 }
 
