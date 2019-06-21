@@ -83,7 +83,7 @@ TEST(ai_test, ai_left_right_equal_zero){
 
 TEST(ai_test, ai_is_winning){
     auto env = setup::createSymmetricEnv();
-    auto leftTeam = getTeam(gameModel::TeamSide::LEFT);
+    auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
     leftTeam->score = 100;
     auto val = ai::evalState(env, gameModel::TeamSide::LEFT, false);
     EXPECT_GT(val, 0);
