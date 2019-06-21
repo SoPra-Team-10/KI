@@ -76,8 +76,8 @@ TEST(ai_test, ai_left_right_equal){
 }
 
 TEST(ai_test, ai_left_right_equal_zero){
-auto env = setup::createSymmetricEnv();
-auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false);
-EXPECT_EQ(valLeft, 0);
+    auto env = setup::createSymmetricEnv();
+    auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false);
+    EXPECT_EQ(valLeft, 0);
 }
 
