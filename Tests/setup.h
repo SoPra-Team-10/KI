@@ -10,6 +10,7 @@
 namespace setup{
     auto createEnv() -> std::shared_ptr<gameModel::Environment>;
     auto createEnv(const gameModel::Config &config) -> std::shared_ptr<gameModel::Environment>;
+    auto createSymmetricEnv() -> std::shared_ptr<gameModel::Environment>;
 }
 
 #endif //KI_SETUP_H
