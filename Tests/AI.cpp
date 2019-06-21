@@ -81,3 +81,11 @@ TEST(ai_test, ai_left_right_equal_zero){
     EXPECT_EQ(valLeft, 0);
 }
 
+TEST(ai_test, ai_is_winning){
+    auto env = setup::createSymmetricEnv();
+    auto leftTeam = getTeam(gameModel::TeamSide::LEFT);
+    leftTeam->score = 100;
+    auto val = ai::evalState(env, gameModel::TeamSide::LEFT, false);
+    EXPECT_GT(val, 0);
+}
+
