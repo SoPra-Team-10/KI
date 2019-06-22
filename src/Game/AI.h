@@ -7,7 +7,6 @@
 
 #include "Game.hpp"
 namespace ai {
-    constexpr auto minShotSuccessProb = 0.2;
 
     /**
      * Evaluates a game situation

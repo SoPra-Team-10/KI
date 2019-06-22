@@ -9,6 +9,7 @@
 #include <SopraGameLogic/conversions.h>
 
 namespace ai{
+    constexpr auto minShotSuccessProb = 0.2;
 
     double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound) {
         constexpr auto disqPenalty = 2000;
@@ -63,7 +64,7 @@ namespace ai{
 
         val += evalSeeker(team->seeker, env);
         val += evalKeeper(team->keeper, env);
-        for(const auto chaser:team->chasers){
+        for(const auto &chaser : team->chasers){
             val += evalChaser(chaser, env);
         }
 
@@ -347,7 +348,11 @@ namespace ai{
             throw std::runtime_error("No move possible");
         }
 
-        auto [best, score] = aiTools::chooseBestAction(moves, evalState, mySide, goalScoredThisRound);
+        auto evalFun = [=] (const std::shared_ptr<const gameModel::Environment> &e){
+            return evalState(e, mySide, goalScoredThisRound);
+        };
+
+        auto [best, score] = aiTools::chooseBestAction(moves, evalFun);
         if(score < evalState(env, mySide, goalScoredThisRound)) {
             return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
@@ -369,7 +374,11 @@ namespace ai{
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
 
-        auto [best, score] = aiTools::chooseBestAction(shots, evalState, mySide, goalScoredThisRound);
+        auto evalFun = [=] (const std::shared_ptr<const gameModel::Environment> &e){
+            return evalState(e, mySide, goalScoredThisRound);
+        };
+
+        auto [best, score] = aiTools::chooseBestAction(shots, evalFun);
         if(score < evalState(env, mySide, goalScoredThisRound)){
             return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};

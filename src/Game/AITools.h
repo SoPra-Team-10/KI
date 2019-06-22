@@ -96,26 +96,23 @@ namespace aiTools{
      * Selects the best Action from a list of Actions.
      * @tparam ActionType type of Action
      * @tparam EvalFun type of function used for evaluating the actions' outcomes
-     * @tparam EvalArgs types of additional arguments passed to evaluation function
      * @param actionList list of actions to evaluate
      * @param evalFun evaluation function for comparing outcomes of actions
-     * @param evalArgs additional arguments for the evaluation function
      * @return tuple of the best Action and its score
      */
-    template <typename ActionType, typename EvalFun, typename... EvalArgs>
-    auto chooseBestAction(const std::vector<ActionType> &actionList, const EvalFun &evalFun, const EvalArgs&... evalArgs) ->
+    template <typename ActionType, typename EvalFun>
+    auto chooseBestAction(const std::vector<ActionType> &actionList, const EvalFun &evalFun) ->
         std::tuple<typename std::vector<ActionType>::const_iterator, double>{
         if(actionList.empty()){
             throw std::runtime_error("List is empty. Cannot choose best entry");
         }
 
-        auto eval = std::bind(evalFun, std::placeholders::_1, evalArgs...);
         double highestScore = -std::numeric_limits<double>::infinity();
         std::optional<typename std::vector<ActionType>::const_iterator> best;
-        for(auto action = actionList.begin(); action < actionList.end(); action++){
+        for(auto action = actionList.begin(); action < actionList.end(); ++action){
             double tmpScore = 0;
             for(const auto &outcome : action->executeAll()){
-                tmpScore += outcome.second * eval(outcome.first);
+                tmpScore += outcome.second * evalFun(outcome.first);
             }
 
             if(tmpScore > highestScore){
