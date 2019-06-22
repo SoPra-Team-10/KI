@@ -89,3 +89,37 @@ TEST(ai_test, ai_is_winning){
     EXPECT_GT(val, 0);
 }
 
+TEST(ai_test, team_has_quaffle_works_for_left){
+    auto env = setup::createEnv();
+    auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
+    env->quaffle->position = leftTeam->keeper->position;
+    auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
+    EXPECT_GT(res, true);
+}
+
+TEST(ai_test, team_has_quaffle_works_for_left_when_false){
+    auto env = setup::createEnv();
+    auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
+    auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
+    env->quaffle->position = rightTeam->keeper->position;
+    auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
+    EXPECT_GT(res, false);
+}
+
+TEST(ai_test, team_has_quaffle_works_for_right){
+    auto env = setup::createEnv();
+    auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
+    env->quaffle->position = rightTeam->keeper->position;
+    auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
+    EXPECT_GT(res, true);
+}
+
+TEST(ai_test, team_has_quaffle_works_for_left_when_false){
+    auto env = setup::createEnv();
+    auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
+    auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
+    env->quaffle->position = leftTeam->keeper->position;
+    auto res = ai::teamHasQuaffle(env, rightTeam->seeker);
+    EXPECT_GT(res, false);
+}
+
