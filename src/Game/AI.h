@@ -79,6 +79,14 @@ namespace ai {
      */
     auto computeOptimalPath(const std::shared_ptr<const gameModel::Player> &player, const gameModel::Position &destination,
                             const std::shared_ptr<const gameModel::Environment> &env) -> std::vector<gameModel::Position>;
+
+    /**
+     * Checks if the team of the given player is in possession of the quaffle
+     * @param env The Environment to operate on
+     * @param player The player on the team to check
+     * @return True if either the keeper or a chaser of the respective team holds the quaffle
+     */
+    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<gameModel::Player> &player);
 }
 
 #endif //KI_AI_H

@@ -135,6 +135,8 @@ namespace ai{
         constexpr auto goalPotentialChanceDiscountFactorInLead = 10;
         constexpr auto goalPotentialChanceDiscountFactorEven = 20;
         constexpr auto baseVal = 150;
+        constexpr auto keeperBonusPotentialEvenWinChance = 10;
+        constexpr auto keeperBonusPotentialHighWinChance = 200;
 
         double val = 0;
         int scoreDiff = 0;
@@ -172,14 +174,26 @@ namespace ai{
                 }
             }
         } else {
-            val += baseQuaffleDistanceDiscount / gameController::getDistance(keeper->position, env->quaffle->position);
-            if(scoreDiff < -gameController::SNITCH_POINTS) {
-                val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorBehind;
-            } else if(scoreDiff > gameController::SNITCH_POINTS) {
-                val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorInLead;
+            if(teamHasQuaffle(env, keeper)) {
+                if(scoreDiff < -gameController::SNITCH_POINTS) {
+                    val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorBehind;
+                } else if(scoreDiff > gameController::SNITCH_POINTS) {
+                    val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorInLead;
+                } else {
+                    val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorEven;
+                }
+
+                if (env->isPlayerInOwnRestrictedZone(keeper)) {
+                    if(scoreDiff > gameController::SNITCH_POINTS) {
+                        val += keeperBonusPotentialHighWinChance;
+                    } else if(scoreDiff >= -gameController::SNITCH_POINTS) {
+                        val += keeperBonusPotentialEvenWinChance;
+                    }
+                }
             } else {
-                val += getHighestGoalRate(env, keeper) * goalPotentialChanceDiscountFactorEven;
+                val += baseQuaffleDistanceDiscount / gameController::getDistance(keeper->position, env->quaffle->position);
             }
+
         }
 
         return val;
@@ -226,13 +240,16 @@ namespace ai{
                 val += getHighestGoalRate(env, chaser) * goalChanceDiscountFactorEven;
             }
         } else {
-            val += baseQuaffleDistanceDiscount / gameController::getDistance(chaser->position, env->quaffle->position);
-            if(scoreDiff < -gameController::SNITCH_POINTS) {
-                val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorBehind;
-            } else if(scoreDiff > gameController::SNITCH_POINTS) {
-                val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorInLead;
+            if(teamHasQuaffle(env, chaser)) {
+                if(scoreDiff < -gameController::SNITCH_POINTS) {
+                    val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorBehind;
+                } else if(scoreDiff > gameController::SNITCH_POINTS) {
+                    val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorInLead;
+                } else {
+                    val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorEven;
+                }
             } else {
-                val += getHighestGoalRate(env, chaser) * goalPotentialChanceDiscountFactorEven;
+                val += baseQuaffleDistanceDiscount / gameController::getDistance(chaser->position, env->quaffle->position);
             }
         }
         return val;
@@ -340,5 +357,23 @@ namespace ai{
         }
 
         return ret;
+    }
+
+    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<gameModel::Player> &player) {
+        std::shared_ptr<gameModel::Team> team = env->team1;
+        if(env->team2->hasMember(player)) {
+            team = env->team2;
+        }
+        if(team->keeper->position == env->quaffle->position) {
+            return true;
+        }
+
+        for(const auto chaser:team->chasers){
+            if(chaser->position == env->quaffle->position) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
