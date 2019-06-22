@@ -92,28 +92,43 @@ namespace aiTools{
         return ret;
     }
 
+    /**
+     * Selects the best Action from a list of Actions.
+     * @tparam ActionType type of Action
+     * @tparam EvalFun type of function used for evaluating the actions' outcomes
+     * @tparam EvalArgs types of additional arguments passed to evaluation function
+     * @param actionList list of actions to evaluate
+     * @param evalFun evaluation function for comparing outcomes of actions
+     * @param evalArgs additional arguments for the evaluation function
+     * @return tuple of the best Action and its score
+     */
     template <typename ActionType, typename EvalFun, typename... EvalArgs>
-    auto chooseBestAction(const std::vector<ActionType> &actionList, const EvalFun &evalFun, const EvalArgs&... evalArgs) -> std::tuple<ActionType, double>{
+    auto chooseBestAction(const std::vector<ActionType> &actionList, const EvalFun &evalFun, const EvalArgs&... evalArgs) ->
+        std::tuple<typename std::vector<ActionType>::const_iterator, double>{
         if(actionList.empty()){
             throw std::runtime_error("List is empty. Cannot choose best entry");
         }
 
         auto eval = std::bind(evalFun, std::placeholders::_1, evalArgs...);
         double highestScore = -std::numeric_limits<double>::infinity();
-        int best = -1;
-        for(unsigned long i = 0; i < actionList.size(); i++){
+        std::optional<typename std::vector<ActionType>::const_iterator> best;
+        for(auto action = actionList.begin(); action < actionList.end(); action++){
             double tmpScore = 0;
-            for(const auto &outcome : actionList[i].executeAll()){
+            for(const auto &outcome : action->executeAll()){
                 tmpScore += outcome.second * eval(outcome.first);
             }
 
             if(tmpScore > highestScore){
                 highestScore = tmpScore;
-                best = i;
+                best.emplace(action);
             }
         }
 
-        return {actionList[best], highestScore};
+        if(!best.has_value()){
+            throw std::runtime_error("No best candidate found");
+        }
+
+        return {best.value(), highestScore};
     }
 }
 

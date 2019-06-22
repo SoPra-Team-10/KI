@@ -353,8 +353,8 @@ namespace ai{
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
 
-        return request::DeltaRequest{types::DeltaType::MOVE, std::nullopt, std::nullopt, std::nullopt, best.getTarget().x,
-                                     best.getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        return request::DeltaRequest{types::DeltaType::MOVE, std::nullopt, std::nullopt, std::nullopt, best->getTarget().x,
+                                     best->getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
     }
 
     auto computeBestShot(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
@@ -375,12 +375,12 @@ namespace ai{
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
 
-        if(INSTANCE_OF(best.getBall(), const gameModel::Quaffle)){
-            return request::DeltaRequest{types::DeltaType::QUAFFLE_THROW, std::nullopt, std::nullopt, std::nullopt, best.getTarget().x,
-                                         best.getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-        } else if(INSTANCE_OF(best.getBall(), const gameModel::Bludger)){
-            return request::DeltaRequest{types::DeltaType::BLUDGER_BEATING, std::nullopt, std::nullopt, std::nullopt, best.getTarget().x,
-                                         best.getTarget().y, id, best.getBall()->id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        if(INSTANCE_OF(best->getBall(), const gameModel::Quaffle)){
+            return request::DeltaRequest{types::DeltaType::QUAFFLE_THROW, std::nullopt, std::nullopt, std::nullopt, best->getTarget().x,
+                                         best->getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        } else if(INSTANCE_OF(best->getBall(), const gameModel::Bludger)){
+            return request::DeltaRequest{types::DeltaType::BLUDGER_BEATING, std::nullopt, std::nullopt, std::nullopt, best->getTarget().x,
+                                         best->getTarget().y, id, best->getBall()->id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         } else {
             throw std::runtime_error("Invalid shot was calculated");
         }
