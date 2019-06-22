@@ -132,3 +132,11 @@ TEST(ai_test, goal_Chance_from_neighboring_cell){
     EXPECT_EQ(chance, env->config.gameDynamicsProbs.throwSuccess);
 }
 
+TEST(ai_test, banned_Player_has_value_zero){
+    auto env = setup::createEnv();
+    auto leftKeeper = env->getTeam(gameModel::TeamSide::LEFT)->keeper;
+    leftKeeper->isFined = true;
+    auto val = ai::evalKeeper(leftKeeper, env);
+    EXPECT_EQ(val, 0);
+}
+
