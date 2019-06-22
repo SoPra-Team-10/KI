@@ -101,9 +101,11 @@ TEST(ai_test, computeBestMove){
     auto playerId = types::EntityId::LEFT_CHASER3;
     auto res = ai::computeBestMove(env, playerId, false);
     EXPECT_EQ(res.getActiveEntity(), playerId);
-    EXPECT_EQ(res.getDeltaType(), types::DeltaType::MOVE);
-    gameController::Move move(env, env->getPlayerById(playerId), {res.getXPosNew().value(), res.getYPosNew().value()});
-    EXPECT_NE(move.check(), gameController::ActionCheckResult::Impossible);
+    EXPECT_THAT(res.getDeltaType(), testing::AnyOf(types::DeltaType::MOVE, types::DeltaType::SKIP));
+    if(res.getDeltaType() == types::DeltaType::MOVE){
+        gameController::Move move(env, env->getPlayerById(playerId), {res.getXPosNew().value(), res.getYPosNew().value()});
+        EXPECT_NE(move.check(), gameController::ActionCheckResult::Impossible);
+    }
 }
 
 TEST(ai_test, computeBestShot){
@@ -113,9 +115,11 @@ TEST(ai_test, computeBestShot){
     auto playerId = types::EntityId::LEFT_CHASER2;
     auto res = ai::computeBestShot(env, playerId, false);
     EXPECT_EQ(res.getActiveEntity(), playerId);
-    EXPECT_EQ(res.getDeltaType(), types::DeltaType::QUAFFLE_THROW);
-    gameController::Shot shot(env, env->getPlayerById(playerId), env->quaffle, {res.getXPosNew().value(), res.getYPosNew().value()});
-    EXPECT_NE(shot.check(), gameController::ActionCheckResult::Impossible);
+    EXPECT_THAT(res.getDeltaType(), testing::AnyOf(types::DeltaType::QUAFFLE_THROW, types::DeltaType::SKIP));
+    if(res.getDeltaType() == types::DeltaType::QUAFFLE_THROW){
+        gameController::Shot shot(env, env->getPlayerById(playerId), env->quaffle, {res.getXPosNew().value(), res.getYPosNew().value()});
+        EXPECT_NE(shot.check(), gameController::ActionCheckResult::Impossible);
+    }
 }
 
 TEST(ai_test, computeBestShotBludger){
@@ -125,8 +129,10 @@ TEST(ai_test, computeBestShotBludger){
     auto playerId = types::EntityId::LEFT_BEATER2;
     auto res = ai::computeBestShot(env, playerId, false);
     EXPECT_EQ(res.getActiveEntity(), playerId);
-    EXPECT_EQ(res.getDeltaType(), types::DeltaType::BLUDGER_BEATING);
-    EXPECT_EQ(res.getPassiveEntity(), types::EntityId::BLUDGER1);
-    gameController::Shot shot(env, env->getPlayerById(playerId), env->bludgers[0], {res.getXPosNew().value(), res.getYPosNew().value()});
-    EXPECT_NE(shot.check(), gameController::ActionCheckResult::Impossible);
+    EXPECT_THAT(res.getDeltaType(), testing::AnyOf(types::DeltaType::BLUDGER_BEATING, types::DeltaType::SKIP));
+    if(res.getDeltaType() == types::DeltaType::BLUDGER_BEATING){
+        EXPECT_EQ(res.getPassiveEntity(), types::EntityId::BLUDGER1);
+        gameController::Shot shot(env, env->getPlayerById(playerId), env->bludgers[0], {res.getXPosNew().value(), res.getYPosNew().value()});
+        EXPECT_NE(shot.check(), gameController::ActionCheckResult::Impossible);
+    }
 }

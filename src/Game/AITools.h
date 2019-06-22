@@ -93,7 +93,7 @@ namespace aiTools{
     }
 
     template <typename ActionType, typename EvalFun, typename... EvalArgs>
-    auto chooseBestAction(const std::vector<ActionType> &actionList, const EvalFun &evalFun, const EvalArgs&... evalArgs) -> ActionType{
+    auto chooseBestAction(const std::vector<ActionType> &actionList, const EvalFun &evalFun, const EvalArgs&... evalArgs) -> std::tuple<ActionType, double>{
         if(actionList.empty()){
             throw std::runtime_error("List is empty. Cannot choose best entry");
         }
@@ -113,7 +113,7 @@ namespace aiTools{
             }
         }
 
-        return actionList[best];
+        return {actionList[best], highestScore};
     }
 }
 

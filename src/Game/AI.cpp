@@ -347,7 +347,12 @@ namespace ai{
             throw std::runtime_error("No move possible");
         }
 
-        auto best = aiTools::chooseBestAction(moves, evalState, mySide, goalScoredThisRound);
+        auto [best, score] = aiTools::chooseBestAction(moves, evalState, mySide, goalScoredThisRound);
+        if(score < evalState(env, mySide, goalScoredThisRound)) {
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+
         return request::DeltaRequest{types::DeltaType::MOVE, std::nullopt, std::nullopt, std::nullopt, best.getTarget().x,
                                      best.getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
     }
@@ -364,7 +369,12 @@ namespace ai{
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
 
-        auto best = aiTools::chooseBestAction(shots, evalState, mySide, goalScoredThisRound);
+        auto [best, score] = aiTools::chooseBestAction(shots, evalState, mySide, goalScoredThisRound);
+        if(score < evalState(env, mySide, goalScoredThisRound)){
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+
         if(INSTANCE_OF(best.getBall(), const gameModel::Quaffle)){
             return request::DeltaRequest{types::DeltaType::QUAFFLE_THROW, std::nullopt, std::nullopt, std::nullopt, best.getTarget().x,
                                          best.getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
