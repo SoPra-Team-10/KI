@@ -94,7 +94,7 @@ TEST(ai_test, team_has_quaffle_works_for_left){
     auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
     env->quaffle->position = leftTeam->keeper->position;
     auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
-    EXPECT_GT(res, true);
+    EXPECT_EQ(res, true);
 }
 
 TEST(ai_test, team_has_quaffle_works_for_left_when_false){
@@ -103,7 +103,7 @@ TEST(ai_test, team_has_quaffle_works_for_left_when_false){
     auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
     env->quaffle->position = rightTeam->keeper->position;
     auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
-    EXPECT_GT(res, false);
+    EXPECT_EQ(res, false);
 }
 
 TEST(ai_test, team_has_quaffle_works_for_right){
@@ -111,7 +111,7 @@ TEST(ai_test, team_has_quaffle_works_for_right){
     auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
     env->quaffle->position = rightTeam->keeper->position;
     auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
-    EXPECT_GT(res, true);
+    EXPECT_EQ(res, true);
 }
 
 TEST(ai_test, team_has_quaffle_works_for_left_when_false){
@@ -120,6 +120,15 @@ TEST(ai_test, team_has_quaffle_works_for_left_when_false){
     auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
     env->quaffle->position = leftTeam->keeper->position;
     auto res = ai::teamHasQuaffle(env, rightTeam->seeker);
-    EXPECT_GT(res, false);
+    EXPECT_EQ(res, false);
+}
+
+TEST(ai_test, goal_Chance_from_neighboring_cell){
+    auto env = setup::createEnv();
+    auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
+    leftTeam->keeper->position = {13, 8};
+    env->quaffle->position = leftTeam->keeper->position;
+    auto chance = ai::getHighestGoalRate(env, leftTeam->keeper);
+    EXPECT_EQ(chance, env->config.gameDynamicsProbs.throwSuccess);
 }
 
