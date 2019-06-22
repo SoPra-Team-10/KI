@@ -288,9 +288,15 @@ namespace ai{
 
         for (const auto &goal : goalPos) {
             gameController::Shot shotSim(env, actor, env->quaffle, goal);
-            if (shotSim.successProb() > chance) {
-                chance = shotSim.successProb();
+
+            if(shotSim.isShotOnGoal() == gameController::ActionResult::ScoreLeft
+                    || shotSim.isShotOnGoal() == gameController::ActionResult::ScoreRight) {
+
+                if (shotSim.successProb() > chance) {
+                    chance = shotSim.successProb();
+                }
             }
+
         }
 
         return chance;
