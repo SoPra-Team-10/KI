@@ -24,7 +24,7 @@ namespace communication {
         }
     }
 
-    void MessageHandler::receiveEvent(std::string msg) {
+    void MessageHandler::receiveEvent(const std::string& msg) {
         if (!msg.empty()) {
             try {
                 nlohmann::json json = nlohmann::json::parse(msg);

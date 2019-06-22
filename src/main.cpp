@@ -6,7 +6,7 @@
 #include <fstream>
 #include <Communication/Communicator.hpp>
 
-int main(int argc, char** argv) {
+int main(int argc, char *argv[]) {
     std::string address;
     std::string teamConfigPath;
     std::string lobbyName;
