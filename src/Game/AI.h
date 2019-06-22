@@ -7,6 +7,7 @@
 
 #include "Game.hpp"
 namespace ai {
+    constexpr auto minShotSuccessProb = 0.2;
 
     /**
      * Evaluates a game situation
@@ -84,11 +85,23 @@ namespace ai {
      * Computes the next move according to the current state of the game
      * @param env the current game state
      * @param id the ID of the player to make a move
+     * @param goalScoredThisRound indicates whether a goal was scored in the current round
      * @throws std::runtime_error when no move is possible
      * @return next move as DeltaRequest
      */
-    auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id)
-        -> communication::messages::request::DeltaRequest;
+    auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+            bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
+
+    /**
+     * Computes the next shot according to the current state of the game
+     * @param env the current game state
+     * @param id the ID of the player to perform a shot
+     * @param goalScoredThisRound indicates whether a goal was scored in the current round
+     * @throws std::runtime_error when no shot is possible
+     * @return next shot as DeltaRequest
+     */
+    auto computeBestShot(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+            bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
 }
 
 #endif //KI_AI_H

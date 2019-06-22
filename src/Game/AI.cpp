@@ -6,6 +6,7 @@
 #include "AITools.h"
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/GameController.h>
+#include <SopraGameLogic/conversions.h>
 
 namespace ai{
 
@@ -336,8 +337,42 @@ namespace ai{
         return ret;
     }
 
-    auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env,
-                         communication::messages::types::EntityId id) -> communication::messages::request::DeltaRequest {
-        return communication::messages::request::DeltaRequest();
+    auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+                    bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto player = env->getPlayerById(id);
+        auto moves = gameController::getAllPossibleMoves(player, env);
+        if(moves.empty()){
+            throw std::runtime_error("No move possible");
+        }
+
+        auto best = aiTools::chooseBestAction(moves, evalState, mySide, goalScoredThisRound);
+        return request::DeltaRequest{types::DeltaType::MOVE, std::nullopt, std::nullopt, std::nullopt, best.getTarget().x,
+                                     best.getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+    }
+
+    auto computeBestShot(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+                    bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto player = env->getPlayerById(id);
+        auto shots = gameController::getAllPossibleShots(player, env, minShotSuccessProb);
+        if(shots.empty()){
+            //No shot with decent success probability possible -> skip turn
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+
+        auto best = aiTools::chooseBestAction(shots, evalState, mySide, goalScoredThisRound);
+        if(INSTANCE_OF(best.getBall(), const gameModel::Quaffle)){
+            return request::DeltaRequest{types::DeltaType::QUAFFLE_THROW, std::nullopt, std::nullopt, std::nullopt, best.getTarget().x,
+                                         best.getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        } else if(INSTANCE_OF(best.getBall(), const gameModel::Bludger)){
+            return request::DeltaRequest{types::DeltaType::BLUDGER_BEATING, std::nullopt, std::nullopt, std::nullopt, best.getTarget().x,
+                                         best.getTarget().y, id, best.getBall()->id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        } else {
+            throw std::runtime_error("Invalid shot was calculated");
+        }
     }
 }

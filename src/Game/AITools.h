@@ -12,6 +12,7 @@
 #include <list>
 #include <functional>
 #include <set>
+#include <SopraGameLogic/Action.h>
 
 namespace aiTools{
     template <typename T>
@@ -89,6 +90,30 @@ namespace aiTools{
         }
 
         return ret;
+    }
+
+    template <typename ActionType, typename EvalFun, typename... EvalArgs>
+    auto chooseBestAction(const std::vector<ActionType> &actionList, const EvalFun &evalFun, const EvalArgs&... evalArgs) -> ActionType{
+        if(actionList.empty()){
+            throw std::runtime_error("List is empty. Cannot choose best entry");
+        }
+
+        auto eval = std::bind(evalFun, std::placeholders::_1, evalArgs...);
+        double highestScore = -std::numeric_limits<double>::infinity();
+        int best = -1;
+        for(unsigned long i = 0; i < actionList.size(); i++){
+            double tmpScore = 0;
+            for(const auto &outcome : actionList[i].executeAll()){
+                tmpScore += outcome.second * eval(outcome.first);
+            }
+
+            if(tmpScore > highestScore){
+                highestScore = tmpScore;
+                best = i;
+            }
+        }
+
+        return actionList[best];
     }
 }
 
