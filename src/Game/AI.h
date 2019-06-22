@@ -79,6 +79,16 @@ namespace ai {
      */
     auto computeOptimalPath(const std::shared_ptr<const gameModel::Player> &player, const gameModel::Position &destination,
                             const std::shared_ptr<const gameModel::Environment> &env) -> std::vector<gameModel::Position>;
+
+    /**
+     * Computes the next move according to the current state of the game
+     * @param env the current game state
+     * @param id the ID of the player to make a move
+     * @throws std::runtime_error when no move is possible
+     * @return next move as DeltaRequest
+     */
+    auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id)
+        -> communication::messages::request::DeltaRequest;
 }
 
 #endif //KI_AI_H

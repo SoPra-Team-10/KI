@@ -335,4 +335,9 @@ namespace ai{
 
         return ret;
     }
+
+    auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env,
+                         communication::messages::types::EntityId id) -> communication::messages::request::DeltaRequest {
+        return communication::messages::request::DeltaRequest();
+    }
 }
