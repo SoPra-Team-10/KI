@@ -348,7 +348,7 @@ namespace ai{
             throw std::runtime_error("No move possible");
         }
 
-        auto evalFun = [=] (const std::shared_ptr<const gameModel::Environment> &e){
+        auto evalFun = [mySide, goalScoredThisRound] (const std::shared_ptr<const gameModel::Environment> &e){
             return evalState(e, mySide, goalScoredThisRound);
         };
 
@@ -374,7 +374,7 @@ namespace ai{
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
 
-        auto evalFun = [=] (const std::shared_ptr<const gameModel::Environment> &e){
+        auto evalFun = [mySide, goalScoredThisRound] (const std::shared_ptr<const gameModel::Environment> &e){
             return evalState(e, mySide, goalScoredThisRound);
         };
 
