@@ -96,11 +96,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4e41d537554b16f485717d7cf2b49a2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa18060358e0159a9add99127dd7c9bd7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game.html#aa18060358e0159a9add99127dd7c9bd7">onSnapshot</a> (const communication::messages::broadcast::Snapshot &amp;snapshot)</td></tr>
 <tr class="separator:aa18060358e0159a9add99127dd7c9bd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea8a63cc5a866a8984ac66fcc58f655d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game.html#aea8a63cc5a866a8984ac66fcc58f655d">getNextAction</a> (const communication::messages::broadcast::Next &amp;next) -&gt; std::optional&lt; communication::messages::request::DeltaRequest &gt;</td></tr>
-<tr class="separator:aea8a63cc5a866a8984ac66fcc58f655d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49fda9e1805354fa9e3601ca2bfe8287"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game.html#a49fda9e1805354fa9e3601ca2bfe8287">getNextAction</a> (const communication::messages::broadcast::Next &amp;next) -&gt; communication::messages::request::DeltaRequest</td></tr>
+<tr class="separator:a49fda9e1805354fa9e3601ca2bfe8287"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="aea8a63cc5a866a8984ac66fcc58f655d"></a>
+<a class="anchor" id="a49fda9e1805354fa9e3601ca2bfe8287"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -109,7 +109,7 @@ Public Member Functions</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const communication::messages::broadcast::Next &amp;&#160;</td>
           <td class="paramname"><em>next</em></td><td>)</td>
-          <td> -&gt; std::optional&lt;communication::messages::request::DeltaRequest&gt;</td>
+          <td> -&gt; communication::messages::request::DeltaRequest</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -120,7 +120,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>the next action by the AI or nothing if not AIs turn </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>the next action by the AI </dd></dl>
 
 </div>
 </div>
