@@ -6,7 +6,10 @@
  */
 
 #include "Game.hpp"
+#include "AI.h"
 #include <utility>
+#include <SopraGameLogic/conversions.h>
+#include <SopraGameLogic/GameController.h>
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
     difficulty(difficulty), myConfig(std::move(ownTeamConfig)){}
@@ -23,10 +26,10 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
     P b2Pos{6, 7};
     matchConfig = matchStart.getMatchConfig();
     if(matchStart.getLeftTeamUserName() == myConfig.getTeamName()){
-        side = gameModel::TeamSide::LEFT;
+        mySide = gameModel::TeamSide::LEFT;
         theirConfig = matchStart.getRightTeamConfig();
     } else {
-        side = gameModel::TeamSide::RIGHT;
+        mySide = gameModel::TeamSide::RIGHT;
         theirConfig = matchStart.getLeftTeamConfig();
         mirrorPos(seekerPos);
         mirrorPos(keeperPos);
@@ -44,6 +47,7 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
 void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapshot) {
     using namespace communication::messages::types;
     currentRound = snapshot.getRound();
+    goalScoredThisRound = snapshot.isGoalWasThrownThisRound();
     auto quaf = std::make_shared<gameModel::Quaffle>(gameModel::Position{snapshot.getQuaffleX(), snapshot.getQuaffleY()});
     auto bludgers = std::array<std::shared_ptr<gameModel::Bludger>, 2>
             {std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger1X(),
@@ -77,15 +81,32 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
     }
 }
 
-auto Game::getNextAction(const communication::messages::broadcast::Next &)
-    -> communication::messages::request::DeltaRequest {
+auto Game::getNextAction(const communication::messages::broadcast::Next &next)
+    -> std::optional<communication::messages::request::DeltaRequest> {
+    if(!currentEnv.has_value()){
+        throw std::runtime_error("Local environment not set!") ;
+    }
+
+    if(gameLogic::conversions::idToSide(next.getEntityId()) != mySide){
+        return std::nullopt;
+    }
+
+    switch (next.getTurnType()){
+        case communication::messages::types::TurnType::MOVE:
+            return ai::computeBestMove(*currentEnv, next.getEntityId(), goalScoredThisRound);
+        case communication::messages::types::TurnType::ACTION:
+            break;
+        case communication::messages::types::TurnType::FAN:break;
+        case communication::messages::types::TurnType::REMOVE_BAN:break;
+    }
+
     return communication::messages::request::DeltaRequest();
 }
 
 auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
         std::shared_ptr<gameModel::Team> {
     using ID = communication::messages::types::EntityId;
-    auto teamConf = teamSide == side ? myConfig : theirConfig;
+    auto teamConf = teamSide == mySide ? myConfig : theirConfig;
     bool left = teamSide == gameModel::TeamSide::LEFT;
     gameModel::Seeker seeker(gameModel::Position{teamSnapshot.getSeekerX(), teamSnapshot.getSeekerY()}, teamConf.getSeeker().getBroom(),
             left ? ID::LEFT_SEEKER : ID::RIGHT_SEEKER);
