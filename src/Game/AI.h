@@ -106,11 +106,10 @@ namespace ai {
      * Computes the Position where the banned Player should be redeployed
      * @param env the current game state
      * @param id the ID of the player to perform a shot
-     * @param goalScoredThisRound indicates whether a goal was scored in the current round
      * @return unban request as DeltaRequest
      */
-    auto redeployPlayer(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
-            bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
+    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env, communication::messages::types::EntityId id)
+        -> communication::messages::request::DeltaRequest;
 }
 
 #endif //KI_AI_H

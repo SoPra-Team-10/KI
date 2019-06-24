@@ -136,3 +136,20 @@ TEST(ai_test, computeBestShotBludger){
         EXPECT_NE(shot.check(), gameController::ActionCheckResult::Impossible);
     }
 }
+
+//-------------------------------------redeploy-------------------------------------------------------------------------
+
+TEST(ai_test, redeploy){
+    using namespace communication::messages;
+    auto id = communication::messages::types::EntityId::LEFT_SEEKER;
+    auto env = setup::createEnv();
+    env->getPlayerById(id)->isFined = true;
+    auto res = ai::redeployPlayer(env, env->getPlayerById(id)->id);
+    EXPECT_EQ(res.getDeltaType(), types::DeltaType::UNBAN);
+    EXPECT_EQ(res.getActiveEntity(), id);
+    gameModel::Position pos{res.getXPosNew().value(), res.getYPosNew().value()};
+    EXPECT_TRUE(env->cellIsFree(pos));
+    EXPECT_FALSE(env->isShitOnCell(pos));
+    EXPECT_NE(gameModel::Environment::getCell(pos), gameModel::Cell::GoalLeft);
+    EXPECT_NE(gameModel::Environment::getCell(pos), gameModel::Cell::GoalRight);
+}
