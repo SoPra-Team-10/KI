@@ -55,43 +55,6 @@ namespace ai {
         return ret;
     }
 
-    auto getAllCrossedCells(const gameModel::Position &startPoint, const gameModel::Position &endPoint) ->
-    std::vector<gameModel::Position> {
-
-        std::vector<gameModel::Position> resultVect;
-
-        // check if cells are valid
-        if (gameModel::Environment::getCell(startPoint) == gameModel::Cell::OutOfBounds ||
-            gameModel::Environment::getCell(endPoint) == gameModel::Cell::OutOfBounds){
-            throw std::out_of_range("Source or destination of movement vector are out of bounds");
-        }
-
-        // check if start and end point are equal
-        if (startPoint == endPoint)
-            return resultVect;
-
-        // define an normalize the direction vector
-        gameModel::Vector dirVect(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
-        dirVect.normalize();
-
-        // traverse the route between the two points
-        gameModel::Vector travVect(0, 0);
-        gameModel::Position lastCell = startPoint;
-        while ((travVect + startPoint) != endPoint) {
-
-            // found a new crossed cell
-            if ((travVect + startPoint) != lastCell) {
-                lastCell = travVect + startPoint;
-                resultVect.emplace_back(lastCell);
-            }
-
-            // make a step to travers the vector
-            travVect = travVect + (dirVect * 0.5);
-        }
-
-        return resultVect;
-    }
-
     auto getDistance(const gameModel::Position &startPoint, const gameModel::Position &endPoint) -> int {
 
         // check if cells are valid
@@ -125,7 +88,7 @@ namespace ai {
     }
 
     auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env,
-                        communication::messages::broadcast::Next &next) -> const communication::messages::request::DeltaRequest {
+                        communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength) -> const communication::messages::request::DeltaRequest {
         communication::messages::types::EntityId activeEntityId = next.getEntityId();
         std::optional<communication::messages::types::EntityId> passiveEntityId;
         if (activeEntityId == communication::messages::types::EntityId::LEFT_NIFFLER ||
@@ -139,7 +102,7 @@ namespace ai {
             }
         }else if(activeEntityId == communication::messages::types::EntityId::LEFT_ELF ||
                  activeEntityId == communication::messages::types::EntityId::RIGHT_ELF){
-            passiveEntityId = isElfUseful(mySide, env);
+            passiveEntityId = isElfUseful(mySide, env, excessLength);
             if(passiveEntityId.has_value()){
                 return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
                                                                       std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
@@ -158,7 +121,7 @@ namespace ai {
             }
         }else if(activeEntityId == communication::messages::types::EntityId::LEFT_GOBLIN ||
                  activeEntityId == communication::messages::types::EntityId::RIGHT_GOBLIN){
-            passiveEntityId = isGoblinUseful(mySide, env);
+            passiveEntityId = getGoblinTarget(mySide, env);
             if(passiveEntityId.has_value()){
                 return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::GOBLIN_SHOCK, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
                                                                       std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
@@ -166,17 +129,7 @@ namespace ai {
                 return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
                                                                       std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }
-        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_WOMBAT ||
-                 activeEntityId == communication::messages::types::EntityId::RIGHT_WOMBAT){
-            std::optional<std::vector<int, int>> newPosition;
-            if(newPosition.has_value()){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::WOMBAT_POO, std::nullopt, std::nullopt, std::nullopt, newPosition[0], newPosition[1],
-                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }
-        } else{
+        }else{
             return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
                                                                   std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
@@ -207,26 +160,36 @@ namespace ai {
         return false;
     }
 
-    auto isGoblinUseful(const gameModel::TeamSide &mySide,
-                        const std::shared_ptr<gameModel::Environment> &env) -> std::optional<communication::messages::types::EntityId> {
-        if (mySide == env->team1->side) {
-            for(const auto &chase : env->team2->chasers){
-                if(chase->position == env->quaffle->position){
-                    return chase->id;
-                }
-            }
-        }else {
-            for(const auto &chase : env->team1->chasers){
-                if(chase->position == env->quaffle->position){
-                    return chase->id;
-                }
+    auto getGoblinTarget(const gameModel::TeamSide &mySide,
+                        const std::shared_ptr<gameModel::Environment> &env) -> const std::optional<communication::messages::types::EntityId> {
+        auto opponentGoals = env->getGoalsRight();
+        if(mySide == gameModel::TeamSide::RIGHT) {
+            opponentGoals = env->getGoalsLeft();
+        }
+
+        for(const auto &goal : opponentGoals){
+            auto player = env->getPlayer(goal);
+            if(player.has_value() && !env->getTeam(mySide)->hasMember(player.value())){
+                return player.value()->id;
             }
         }
+
         return std::nullopt;
     }
 
-    auto isElfUseful(const gameModel::TeamSide &mySide,
-                     const std::shared_ptr<gameModel::Environment> &env) -> std::optional<communication::messages::types::EntityId> {
-        return std::optional<communication::messages::types::EntityId>();
+    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env,
+                     const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId> {
+        std::shared_ptr<gameModel::Environment> environment = env->clone();
+        gameController::moveSnitch(environment->snitch, environment, excessLength);
+        if (mySide == environment->team1->side) {
+            if (getDistance(environment->team2->seeker->position, environment->snitch->position) <= 2) {
+                return environment->team2->seeker->id;
+            }
+        } else {
+            if (getDistance(environment->team1->seeker->position, environment->snitch->position) <= 2) {
+                return environment->team1->seeker->id;
+            }
+        }
+        return std::nullopt;
     }
 }

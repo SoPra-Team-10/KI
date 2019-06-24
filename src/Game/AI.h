@@ -6,6 +6,7 @@
 #define KI_AI_H
 
 #include <SopraGameLogic/GameModel.h>
+#include <SopraGameLogic/GameController.h>
 #include <SopraMessages/Message.hpp>
 
 namespace ai{
@@ -32,16 +33,11 @@ namespace ai{
 
     bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
 
-    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env) -> std::optional<communication::messages::types::EntityId>;
+    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env, const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId>;
 
     bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
 
-    auto isGoblinUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env) -> std::optional<communication::messages::types::EntityId>;
-
-    bool isWombatUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
-
-    auto getAllCrossedCells(const gameModel::Position &startPoint, const gameModel::Position &endPoint) ->
-    std::vector<gameModel::Position>;
+    auto getGoblinTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env) -> const std::optional<communication::messages::types::EntityId>;
 
     auto getDistance(const gameModel::Position &startPoint, const gameModel::Position &endPoint) -> int;
 }
