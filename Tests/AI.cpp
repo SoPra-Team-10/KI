@@ -10,7 +10,7 @@
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/Interference.h>
 
-#define testTimeout 30
+constexpr int testTimeout = 30;
 
 
 //-----------------------------------optimal path search----------------------------------------------------------------
@@ -164,7 +164,7 @@ TEST(ai_test, computeBestWrest){
 
 TEST(ai_test, getNextFanTurn0){
     auto env = setup::createEnv();
-    communication::messages::broadcast::Next next {communication::messages::types::EntityId::LEFT_GOBLIN, communication::messages::types::TurnType::FAN, testTimeout};
+    communication::messages::broadcast::Next next{communication::messages::types::EntityId::LEFT_GOBLIN, communication::messages::types::TurnType::FAN, testTimeout};
     auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
     EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::GOBLIN_SHOCK));
     if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::GOBLIN_SHOCK) {
@@ -179,14 +179,14 @@ TEST(ai_test, getNextFanTurn0){
 
 TEST(ai_test, getNextFanTurn1){
     auto env = setup::createEnv();
-    communication::messages::broadcast::Next next {communication::messages::types::EntityId::LEFT_WOMBAT, communication::messages::types::TurnType::FAN, testTimeout};
+    communication::messages::broadcast::Next next{communication::messages::types::EntityId::LEFT_WOMBAT, communication::messages::types::TurnType::FAN, testTimeout};
     auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
     EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf (communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::WOMBAT_POO));
 }
 
 TEST(ai_test, getNextFanTurn2){
     auto env = setup::createEnv();
-    communication::messages::broadcast::Next next {communication::messages::types::EntityId::LEFT_TROLL, communication::messages::types::TurnType::FAN, testTimeout};
+    communication::messages::broadcast::Next next{communication::messages::types::EntityId::LEFT_TROLL, communication::messages::types::TurnType::FAN, testTimeout};
     auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
     EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::TROLL_ROAR));
     if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::TROLL_ROAR) {
@@ -198,7 +198,7 @@ TEST(ai_test, getNextFanTurn2){
 TEST(ai_test, getNextFanTurn3){
     auto env = setup::createEnv();
     env->snitch->exists = true;
-    communication::messages::broadcast::Next next {communication::messages::types::EntityId::LEFT_ELF, communication::messages::types::TurnType::FAN, testTimeout};
+    communication::messages::broadcast::Next next{communication::messages::types::EntityId::LEFT_ELF, communication::messages::types::TurnType::FAN, testTimeout};
     auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
     EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::ELF_TELEPORTATION));
     if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::ELF_TELEPORTATION) {
@@ -215,7 +215,7 @@ TEST(ai_test, getNextFanTurn3){
 TEST(ai_test, getNextFanTurn4){
     auto env = setup::createEnv();
     env->snitch->exists = true;
-    communication::messages::broadcast::Next next {communication::messages::types::EntityId::LEFT_NIFFLER, communication::messages::types::TurnType::FAN, testTimeout};
+    communication::messages::broadcast::Next next{communication::messages::types::EntityId::LEFT_NIFFLER, communication::messages::types::TurnType::FAN, testTimeout};
     auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
     EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::SNITCH_SNATCH));
     if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::SNITCH_SNATCH) {

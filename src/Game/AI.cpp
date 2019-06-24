@@ -8,7 +8,7 @@
 #include <SopraGameLogic/GameController.h>
 #include <SopraGameLogic/conversions.h>
 
-#define distanceSnitchToSeeker 2
+constexpr int distanceSnitchSeeker = 2;
 
 namespace ai{
     constexpr auto minShotSuccessProb = 0.2;
@@ -476,9 +476,9 @@ namespace ai{
 
     bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env){
         if (mySide == env->team1->side) {
-            return gameController::getDistance(env->team2->seeker->position, env->snitch->position) <= distanceSnitchToSeeker;
+            return gameController::getDistance(env->team2->seeker->position, env->snitch->position) <= distanceSnitchSeeker;
         }else{
-            return gameController::getDistance(env->team1->seeker->position, env->snitch->position) <= distanceSnitchToSeeker;
+            return gameController::getDistance(env->team1->seeker->position, env->snitch->position) <= distanceSnitchSeeker;
         }
     }
 
@@ -505,7 +505,6 @@ namespace ai{
                 return player.value()->id;
             }
         }
-
         return std::nullopt;
     }
 
@@ -515,17 +514,15 @@ namespace ai{
             std::shared_ptr<gameModel::Environment> environment = env->clone();
             gameController::moveSnitch(environment->snitch, environment, excessLength);
             if (mySide == environment->team1->side) {
-                if (gameController::getDistance(environment->team2->seeker->position, environment->snitch->position) <= distanceSnitchToSeeker) {
+                if (gameController::getDistance(environment->team2->seeker->position, environment->snitch->position) <= distanceSnitchSeeker) {
                     return environment->team2->seeker->id;
                 }
             } else {
-                if (gameController::getDistance(environment->team1->seeker->position, environment->snitch->position) <= distanceSnitchToSeeker) {
+                if (gameController::getDistance(environment->team1->seeker->position, environment->snitch->position) <= distanceSnitchSeeker) {
                     return environment->team1->seeker->id;
                 }
             }
-            return std::nullopt;
-        }else{
-            return std::nullopt;
         }
+        return std::nullopt;
     }
 }
