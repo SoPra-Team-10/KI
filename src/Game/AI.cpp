@@ -473,7 +473,7 @@ namespace ai{
                  activeEntityId == communication::messages::types::EntityId::RIGHT_ELF){
             passiveEntityId = isElfUseful(mySide, env, excessLength);
             if(passiveEntityId.has_value()){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::ELF_TELEPORTATION, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
                                                                       std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }else{
                 return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,

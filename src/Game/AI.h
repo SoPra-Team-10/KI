@@ -123,7 +123,8 @@ namespace ai {
      * @param next gives the next EntityID
      * @return returns the new DeltaRequest
      */
-    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env, communication::messages::broadcast::Next &next)->const communication::messages::request::DeltaRequest;
+    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env, communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength)
+                        -> const communication::messages::request::DeltaRequest;
 
     bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
 

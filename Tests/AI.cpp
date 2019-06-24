@@ -8,6 +8,7 @@
 #include "setup.h"
 #include <SopraGameLogic/GameController.h>
 #include <SopraGameLogic/GameModel.h>
+#include <SopraGameLogic/Interference.h>
 
 
 //-----------------------------------optimal path search----------------------------------------------------------------
@@ -154,5 +155,88 @@ TEST(ai_test, computeBestWrest){
 
         gameController::WrestQuaffle wrest(env, player, env->quaffle->position);
         EXPECT_NE(wrest.check(), gameController::ActionCheckResult::Impossible);
+    }
+}
+
+//------------------------------------------Interference Useful Tests--------------------------------------------------
+
+TEST(ai_test, getNextFanTurn0){
+    auto env = setup::createEnv();
+    communication::messages::broadcast::Next next = communication::messages::broadcast::Next{communication::messages::types::EntityId::LEFT_GOBLIN, communication::messages::types::TurnType::FAN, 30};
+    auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
+    EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::GOBLIN_SHOCK));
+    if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::GOBLIN_SHOCK) {
+        std::optional<communication::messages::types::EntityId> entityId = deltaRequest.getPassiveEntity();
+        if(entityId.has_value()) {
+            auto player = env->getPlayerById(entityId.value());
+            gameController::RangedAttack rangedAttack {env, env->team2, player};
+            EXPECT_TRUE(rangedAttack.isPossible());
+            EXPECT_TRUE(env->getTeam(player)->side == gameModel::TeamSide::RIGHT);
+        }else{
+            throw std::runtime_error("No Passive EntityID");
+        }
+    }
+}
+
+TEST(ai_test, getNextFanTurn1){
+    auto env = setup::createEnv();
+    communication::messages::broadcast::Next next = communication::messages::broadcast::Next{communication::messages::types::EntityId::LEFT_WOMBAT, communication::messages::types::TurnType::FAN, 30};
+    auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
+    EXPECT_EQ(deltaRequest.getDeltaType(), communication::messages::types::DeltaType::SKIP);
+}
+
+TEST(ai_test, getNextFanTurn2){
+    auto env = setup::createEnv();
+    communication::messages::broadcast::Next next = communication::messages::broadcast::Next{communication::messages::types::EntityId::LEFT_TROLL, communication::messages::types::TurnType::FAN, 30};
+    auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
+    EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::TROLL_ROAR));
+    if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::TROLL_ROAR) {
+        std::optional<communication::messages::types::EntityId> entityId = deltaRequest.getPassiveEntity();
+        if(entityId.has_value()) {
+            auto player = env->getPlayerById(entityId.value());
+            gameController::Impulse impulse {env, env->team2};
+            EXPECT_TRUE(impulse.isPossible());
+            EXPECT_TRUE(env->getTeam(player)->side == gameModel::TeamSide::RIGHT);
+        }else{
+            throw std::runtime_error("No Passive EntityID");
+        }
+    }
+}
+
+TEST(ai_test, getNextFanTurn3){
+    auto env = setup::createEnv();
+    env->snitch->exists = true;
+    communication::messages::broadcast::Next next = communication::messages::broadcast::Next{communication::messages::types::EntityId::LEFT_ELF, communication::messages::types::TurnType::FAN, 30};
+    auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
+    EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::ELF_TELEPORTATION));
+    if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::ELF_TELEPORTATION) {
+        std::optional<communication::messages::types::EntityId> entityId = deltaRequest.getPassiveEntity();
+        if(entityId.has_value()) {
+            auto player = env->getPlayerById(entityId.value());
+            gameController::Teleport teleport {env, env->team2, player};
+            EXPECT_TRUE(teleport.isPossible());
+            EXPECT_TRUE(env->getTeam(player)->side == gameModel::TeamSide::RIGHT);
+        }else{
+            throw std::runtime_error("No Passive EntityID");
+        }
+    }
+}
+
+TEST(ai_test, getNextFanTurn4){
+    auto env = setup::createEnv();
+    env->snitch->exists = true;
+    communication::messages::broadcast::Next next = communication::messages::broadcast::Next{communication::messages::types::EntityId::LEFT_NIFFLER, communication::messages::types::TurnType::FAN, 30};
+    auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
+    EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::ELF_TELEPORTATION));
+    if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::SNITCH_SNATCH) {
+        std::optional<communication::messages::types::EntityId> entityId = deltaRequest.getPassiveEntity();
+        if(entityId.has_value()) {
+            auto player = env->getPlayerById(entityId.value());
+            gameController::SnitchPush snitchPush {env, env->team2};
+            EXPECT_TRUE(snitchPush.isPossible());
+            EXPECT_TRUE(env->getTeam(player)->side == gameModel::TeamSide::RIGHT);
+        }else{
+            throw std::runtime_error("No Passive EntityID");
+        }
     }
 }
