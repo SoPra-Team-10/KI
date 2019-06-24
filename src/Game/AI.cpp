@@ -394,4 +394,10 @@ namespace ai{
             throw std::runtime_error("Invalid shot was calculated");
         }
     }
+
+    auto redeployPlayer(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+                        bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+
+        return communication::messages::request::DeltaRequest();
+    }
 }
