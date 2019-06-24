@@ -114,8 +114,21 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
     switch (next.getTurnType()){
         case communication::messages::types::TurnType::MOVE:
             return ai::computeBestMove(*currentEnv, next.getEntityId(), goalScoredThisRound);
-        case communication::messages::types::TurnType::ACTION:
-            break;
+        case communication::messages::types::TurnType::ACTION:{
+            auto type = gameController::getPossibleBallActionType(
+                    (*currentEnv)->getPlayerById(next.getEntityId()), *currentEnv);
+            if(!type.has_value()){
+                throw std::runtime_error("No action possible");
+            }
+
+            if(*type == gameController::ActionType::Throw) {
+                return ai::computeBestShot(*currentEnv, next.getEntityId(), goalScoredThisRound);
+            } else if(*type == gameController::ActionType::Wrest) {
+                return ai::computeBestWrest(*currentEnv, next.getEntityId(), goalScoredThisRound);
+            } else {
+                throw std::runtime_error("Unexpected action type");
+            }
+        }
         case communication::messages::types::TurnType::FAN:break;
         case communication::messages::types::TurnType::REMOVE_BAN:break;
     }
