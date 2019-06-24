@@ -87,6 +87,28 @@ namespace ai {
      * @return True if either the keeper or a chaser of the respective team holds the quaffle
      */
     bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<gameModel::Player> &player);
+
+    /**
+     * Computes the next move according to the current state of the game
+     * @param env the current game state
+     * @param id the ID of the player to make a move
+     * @param goalScoredThisRound indicates whether a goal was scored in the current round
+     * @throws std::runtime_error when no move is possible
+     * @return next move as DeltaRequest
+     */
+    auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+            bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
+
+    /**
+     * Computes the next shot according to the current state of the game
+     * @param env the current game state
+     * @param id the ID of the player to perform a shot
+     * @param goalScoredThisRound indicates whether a goal was scored in the current round
+     * @throws std::runtime_error when no shot is possible
+     * @return next shot as DeltaRequest
+     */
+    auto computeBestShot(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+            bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
 }
 
 #endif //KI_AI_H
