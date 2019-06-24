@@ -426,38 +426,6 @@ namespace ai{
         }
     }
 
-    auto getDistance(const gameModel::Position &startPoint, const gameModel::Position &endPoint) -> int {
-
-        // check if cells are valid
-        if (gameModel::Environment::getCell(startPoint) == gameModel::Cell::OutOfBounds ||
-            gameModel::Environment::getCell(endPoint) == gameModel::Cell::OutOfBounds){
-
-            return -1;
-        }
-
-        // check if start and end point are equal
-        if (startPoint == endPoint){
-            return 0;
-        }
-
-        int totalDistance = 0;
-
-        // calc the differences within the components of the given points
-        int dX = std::abs(startPoint.x - endPoint.x);
-        int dY = std::abs(startPoint.y - endPoint.y);
-
-        // calculate the total distance
-        if (dX >= dY) {
-            totalDistance += dY;
-            totalDistance += dX-dY;
-        } else {
-            totalDistance += dX;
-            totalDistance += dY-dX;
-        }
-
-        return totalDistance;
-    }
-
     auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
                         communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength) -> const communication::messages::request::DeltaRequest {
         communication::messages::types::EntityId activeEntityId = next.getEntityId();
@@ -508,9 +476,9 @@ namespace ai{
 
     bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env){
         if (mySide == env->team1->side) {
-            return getDistance(env->team2->seeker->position, env->snitch->position) <= 2;
+            return gameController::getDistance(env->team2->seeker->position, env->snitch->position) <= distanceSnitchToSeeker;
         }else{
-            return getDistance(env->team1->seeker->position, env->snitch->position) <= 2;
+            return gameController::getDistance(env->team1->seeker->position, env->snitch->position) <= distanceSnitchToSeeker;
         }
     }
 
@@ -547,11 +515,11 @@ namespace ai{
             std::shared_ptr<gameModel::Environment> environment = env->clone();
             gameController::moveSnitch(environment->snitch, environment, excessLength);
             if (mySide == environment->team1->side) {
-                if (getDistance(environment->team2->seeker->position, environment->snitch->position) <= distanceSnitchToSeeker) {
+                if (gameController::getDistance(environment->team2->seeker->position, environment->snitch->position) <= distanceSnitchToSeeker) {
                     return environment->team2->seeker->id;
                 }
             } else {
-                if (getDistance(environment->team1->seeker->position, environment->snitch->position) <= distanceSnitchToSeeker) {
+                if (gameController::getDistance(environment->team1->seeker->position, environment->snitch->position) <= distanceSnitchToSeeker) {
                     return environment->team1->seeker->id;
                 }
             }
