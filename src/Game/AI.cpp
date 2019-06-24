@@ -8,6 +8,8 @@
 #include <SopraGameLogic/GameController.h>
 #include <SopraGameLogic/conversions.h>
 
+#define distanceSnitchToSeeker 2
+
 namespace ai{
     constexpr auto minShotSuccessProb = 0.2;
 
@@ -456,7 +458,7 @@ namespace ai{
         return totalDistance;
     }
 
-    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env,
+    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
                         communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength) -> const communication::messages::request::DeltaRequest {
         communication::messages::types::EntityId activeEntityId = next.getEntityId();
         std::optional<communication::messages::types::EntityId> passiveEntityId;
@@ -504,7 +506,7 @@ namespace ai{
         }
     }
 
-    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env){
+    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env){
         if (mySide == env->team1->side) {
             return getDistance(env->team2->seeker->position, env->snitch->position) <= 2;
         }else{
@@ -512,25 +514,18 @@ namespace ai{
         }
     }
 
-    bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env) {
-        if (mySide == env->team1->side) {
-            for(const auto &chase : env->team2->chasers){
-                if(chase->position == env->quaffle->position){
-                    return true;
-                }
-            }
-        }else {
-            for(const auto &chase : env->team1->chasers){
-                if(chase->position == env->quaffle->position){
-                    return true;
-                }
+    bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env) {
+        auto player = env->getPlayer(env->quaffle->position);
+        if(player.has_value()) {
+            if(mySide != env->getTeam(player.value())->side) {
+                return true;
             }
         }
         return false;
     }
 
     auto getGoblinTarget(const gameModel::TeamSide &mySide,
-                        const std::shared_ptr<gameModel::Environment> &env) -> const std::optional<communication::messages::types::EntityId> {
+                        const std::shared_ptr<const gameModel::Environment> &env) -> const std::optional<communication::messages::types::EntityId> {
         auto opponentGoals = env->getGoalsRight();
         if(mySide == gameModel::TeamSide::RIGHT) {
             opponentGoals = env->getGoalsLeft();
@@ -546,19 +541,23 @@ namespace ai{
         return std::nullopt;
     }
 
-    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env,
+    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
                      const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId> {
-        std::shared_ptr<gameModel::Environment> environment = env->clone();
-        gameController::moveSnitch(environment->snitch, environment, excessLength);
-        if (mySide == environment->team1->side) {
-            if (getDistance(environment->team2->seeker->position, environment->snitch->position) <= 2) {
-                return environment->team2->seeker->id;
+        if(env->snitch->exists) {
+            std::shared_ptr<gameModel::Environment> environment = env->clone();
+            gameController::moveSnitch(environment->snitch, environment, excessLength);
+            if (mySide == environment->team1->side) {
+                if (getDistance(environment->team2->seeker->position, environment->snitch->position) <= distanceSnitchToSeeker) {
+                    return environment->team2->seeker->id;
+                }
+            } else {
+                if (getDistance(environment->team1->seeker->position, environment->snitch->position) <= distanceSnitchToSeeker) {
+                    return environment->team1->seeker->id;
+                }
             }
-        } else {
-            if (getDistance(environment->team1->seeker->position, environment->snitch->position) <= 2) {
-                return environment->team1->seeker->id;
-            }
+            return std::nullopt;
+        }else{
+            return std::nullopt;
         }
-        return std::nullopt;
     }
 }

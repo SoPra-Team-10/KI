@@ -123,16 +123,16 @@ namespace ai {
      * @param next gives the next EntityID
      * @return returns the new DeltaRequest
      */
-    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env, communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength)
+    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env, communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength)
                         -> const communication::messages::request::DeltaRequest;
 
-    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
+    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env);
 
-    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env, const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId>;
+    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env, const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId>;
 
-    bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
+    bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env);
 
-    auto getGoblinTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env) -> const std::optional<communication::messages::types::EntityId>;
+    auto getGoblinTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env) -> const std::optional<communication::messages::types::EntityId>;
 
     auto getDistance(const gameModel::Position &startPoint, const gameModel::Position &endPoint) -> int;
 }
