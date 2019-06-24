@@ -103,6 +103,7 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
 
 auto Game::getNextAction(const communication::messages::broadcast::Next &next)
     -> std::optional<communication::messages::request::DeltaRequest> {
+    using namespace communication::messages;
     if(!currentEnv.has_value()){
         throw std::runtime_error("Local environment not set!");
     }
@@ -129,11 +130,16 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
                 throw std::runtime_error("Unexpected action type");
             }
         }
-        case communication::messages::types::TurnType::FAN:break;
-        case communication::messages::types::TurnType::REMOVE_BAN:break;
-    }
+        case communication::messages::types::TurnType::FAN:
 
-    return communication::messages::request::DeltaRequest();
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, next.getEntityId(),
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        case communication::messages::types::TurnType::REMOVE_BAN:
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, next.getEntityId(),
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        default:
+            throw std::runtime_error("Enum out of bounds");
+    }
 }
 
 auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
