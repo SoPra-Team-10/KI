@@ -28,7 +28,7 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
     P b1Pos{6, 5};
     P b2Pos{6, 7};
     matchConfig = matchStart.getMatchConfig();
-    if(matchStart.getLeftTeamUserName() == myConfig.getTeamName()){
+    if(matchStart.getLeftTeamConfig().getTeamName() == myConfig.getTeamName()){
         mySide = gameModel::TeamSide::LEFT;
         theirConfig = matchStart.getRightTeamConfig();
     } else {
