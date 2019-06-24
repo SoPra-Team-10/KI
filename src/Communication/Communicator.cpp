@@ -45,6 +45,13 @@ namespace communication {
         game.onSnapshot(payload);
     }
 
+    template <>
+    void Communicator::onPayloadReceive<messages::unicast::PrivateDebug>(
+            const messages::unicast::PrivateDebug &privateDebug) {
+        log.warn("Got private debug:");
+        log.warn(privateDebug.getInformation());
+    }
+
     template<typename T>
     void Communicator::onPayloadReceive(const T&) {
         log.warn("Got unhandled message:");
