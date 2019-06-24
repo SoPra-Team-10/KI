@@ -45,11 +45,24 @@ namespace communication {
         game.onSnapshot(payload);
     }
 
+    template <>
+    void Communicator::onPayloadReceive<messages::broadcast::Next>(const messages::broadcast::Next &next) {
+        log.info("Got Next request");
+        auto request = game.getNextAction(next);
+        if(request.has_value()) {
+            log.info("Requesting Action");
+            send(*request);
+        } else {
+            log.info("Next ignored");
+        }
+    }
+
     template<typename T>
     void Communicator::onPayloadReceive(const T&) {
         log.warn("Got unhandled message:");
         log.warn(T::getName());
     }
+
 
     void Communicator::onMessageReceive(const messages::Message& message) {
         std::visit([this](const auto &payload){
