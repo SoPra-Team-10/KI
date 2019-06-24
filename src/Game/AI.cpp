@@ -473,7 +473,7 @@ namespace ai{
             }
         }else if(activeEntityId == communication::messages::types::EntityId::LEFT_ELF ||
                  activeEntityId == communication::messages::types::EntityId::RIGHT_ELF){
-            passiveEntityId = isElfUseful(mySide, env, excessLength);
+            passiveEntityId = getElfTarget(mySide, env, excessLength);
             if(passiveEntityId.has_value()){
                 return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::ELF_TELEPORTATION, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
                                                                       std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
@@ -541,8 +541,8 @@ namespace ai{
         return std::nullopt;
     }
 
-    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
-                     const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId> {
+    auto getElfTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
+                      const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId> {
         if(env->snitch->exists) {
             std::shared_ptr<gameModel::Environment> environment = env->clone();
             gameController::moveSnitch(environment->snitch, environment, excessLength);

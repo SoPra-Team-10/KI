@@ -128,7 +128,8 @@ namespace ai {
 
     bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env);
 
-    auto isElfUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env, const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId>;
+    auto getElfTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
+                      const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId>;
 
     bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env);
 
