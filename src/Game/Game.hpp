@@ -44,12 +44,16 @@ private:
     static constexpr int FIELD_WIDTH = 16;
     int difficulty;
     int currentRound = 1;
+    communication::messages::types::PhaseType currentPhase = communication::messages::types::PhaseType::BALL_PHASE;
     bool goalScoredThisRound = false;
     std::optional<std::shared_ptr<gameModel::Environment>> currentEnv = std::nullopt;
     gameModel::TeamSide mySide;
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
+    std::vector<communication::messages::types::EntityId> usedPlayersOwn = {};
+    std::vector<communication::messages::types::EntityId> usedPlayersOpponent = {};
+
 
     /**
      * Constructs a Team object from a given TeamSnapshot

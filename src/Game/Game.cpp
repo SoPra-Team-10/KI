@@ -12,7 +12,10 @@
 #include <SopraGameLogic/GameController.h>
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
-    difficulty(difficulty), myConfig(std::move(ownTeamConfig)){}
+    difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
+    usedPlayersOpponent.reserve(7);
+    usedPlayersOwn.reserve(7);
+}
 
 auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart &matchStart)
     -> communication::messages::request::TeamFormation {
@@ -47,7 +50,24 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
 void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapshot) {
     using namespace communication::messages::types;
     currentRound = snapshot.getRound();
+    currentPhase = snapshot.getPhase();
     goalScoredThisRound = snapshot.isGoalWasThrownThisRound();
+    auto lastDelta = snapshot.getLastDeltaBroadcast();
+    if(lastDelta.getDeltaType() == DeltaType::TURN_USED){
+        if(!lastDelta.getActiveEntity().has_value()){
+            throw std::runtime_error("Active entity id not set!");
+        }
+
+        if(gameLogic::conversions::idToSide(*lastDelta.getActiveEntity()) == mySide) {
+            usedPlayersOwn.emplace_back(*lastDelta.getActiveEntity());
+        } else {
+            usedPlayersOpponent.emplace_back(*lastDelta.getActiveEntity());
+        }
+    } else if(lastDelta.getDeltaType() == DeltaType::ROUND_CHANGE) {
+        usedPlayersOpponent.clear();
+        usedPlayersOwn.clear();
+    }
+
     auto quaf = std::make_shared<gameModel::Quaffle>(gameModel::Position{snapshot.getQuaffleX(), snapshot.getQuaffleY()});
     auto bludgers = std::array<std::shared_ptr<gameModel::Bludger>, 2>
             {std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger1X(),
@@ -84,7 +104,7 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
 auto Game::getNextAction(const communication::messages::broadcast::Next &next)
     -> std::optional<communication::messages::request::DeltaRequest> {
     if(!currentEnv.has_value()){
-        throw std::runtime_error("Local environment not set!") ;
+        throw std::runtime_error("Local environment not set!");
     }
 
     if(gameLogic::conversions::idToSide(next.getEntityId()) != mySide){
