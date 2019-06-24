@@ -136,3 +136,23 @@ TEST(ai_test, computeBestShotBludger){
         EXPECT_NE(shot.check(), gameController::ActionCheckResult::Impossible);
     }
 }
+
+TEST(ai_test, computeBestWrest){
+    using namespace communication::messages;
+    auto env = setup::createEnv({0, {}, {1, 1, 0, 0, 1}, {}});
+    env->quaffle->position = env->team1->chasers[1]->position;
+    env->team2->chasers[0]->position = {8, 4};
+    auto playerId = types::EntityId::RIGHT_CHASER1;
+    auto res = ai::computeBestWrest(env, playerId, false);
+    EXPECT_EQ(res.getActiveEntity(), playerId);
+    EXPECT_THAT(res.getDeltaType(), testing::AnyOf(types::DeltaType::WREST_QUAFFLE, types::DeltaType::SKIP));
+    if(res.getDeltaType() == types::DeltaType::WREST_QUAFFLE){
+        auto player = std::dynamic_pointer_cast<gameModel::Chaser>(env->getPlayerById(playerId));
+        if(!player){
+            throw std::runtime_error("No Chaser!!") ;
+        }
+
+        gameController::WrestQuaffle wrest(env, player, env->quaffle->position);
+        EXPECT_NE(wrest.check(), gameController::ActionCheckResult::Impossible);
+    }
+}

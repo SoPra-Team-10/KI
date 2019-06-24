@@ -394,4 +394,33 @@ namespace ai{
             throw std::runtime_error("Invalid shot was calculated");
         }
     }
+
+    auto computeBestWrest(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+                     bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto player = std::dynamic_pointer_cast<gameModel::Chaser>(env->getPlayerById(id));
+        if(!player){
+            throw std::runtime_error("Player is no Chaser");
+        }
+
+        gameController::WrestQuaffle wrest(env, player, env->quaffle->position);
+        if(wrest.check() == gameController::ActionCheckResult::Impossible){
+            throw std::runtime_error("Wrest is impossible");
+        }
+
+        auto currentScore = evalState(env, mySide, goalScoredThisRound);
+        double wrestScore = 0;
+        for(const auto &outcome : wrest.executeAll()){
+            wrestScore += outcome.second * evalState(outcome.first, mySide, goalScoredThisRound);
+        }
+
+        if(currentScore < wrestScore){
+            return request::DeltaRequest{types::DeltaType::WREST_QUAFFLE, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                         id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        } else {
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+    }
 }
