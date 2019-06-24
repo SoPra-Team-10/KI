@@ -181,7 +181,7 @@ TEST(ai_test, getNextFanTurn1){
     auto env = setup::createEnv();
     communication::messages::broadcast::Next next {communication::messages::types::EntityId::LEFT_WOMBAT, communication::messages::types::TurnType::FAN, testTimeout};
     auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
-    EXPECT_EQ(deltaRequest.getDeltaType(), communication::messages::types::DeltaType::SKIP);
+    EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf (communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::WOMBAT_POO));
 }
 
 TEST(ai_test, getNextFanTurn2){
@@ -217,7 +217,7 @@ TEST(ai_test, getNextFanTurn4){
     env->snitch->exists = true;
     communication::messages::broadcast::Next next {communication::messages::types::EntityId::LEFT_NIFFLER, communication::messages::types::TurnType::FAN, testTimeout};
     auto deltaRequest = ai::getNextFanTurn(gameModel::TeamSide::LEFT, env, next, gameController::ExcessLength::None);
-    EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::ELF_TELEPORTATION));
+    EXPECT_THAT(deltaRequest.getDeltaType(), testing::AnyOf(communication::messages::types::DeltaType::SKIP, communication::messages::types::DeltaType::SNITCH_SNATCH));
     if(deltaRequest.getDeltaType() == communication::messages::types::DeltaType::SNITCH_SNATCH) {
         gameController::SnitchPush snitchPush {env, env->team2};
         EXPECT_TRUE(snitchPush.isPossible());
