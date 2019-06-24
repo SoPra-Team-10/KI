@@ -17,10 +17,6 @@
 
 
 class Game {
-    enum class TeamSide{
-        LEFT, RIGHT
-    };
-
 public:
     Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig);
 
@@ -49,7 +45,7 @@ private:
     int difficulty;
     int currentRound = 1;
     std::optional<std::shared_ptr<gameModel::Environment>> currentEnv = std::nullopt;
-    TeamSide side;
+    gameModel::TeamSide side;
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
@@ -60,7 +56,7 @@ private:
      * @param teamSide side on which the Team plays
      * @return gameModel::Team
      */
-    auto teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, TeamSide teamSide) const ->
+    auto teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
         std::shared_ptr<gameModel::Team>;
 
     /**

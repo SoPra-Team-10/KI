@@ -12,6 +12,7 @@
 #include <list>
 #include <functional>
 #include <set>
+#include <SopraGameLogic/Action.h>
 
 namespace aiTools{
     template <typename T>
@@ -89,6 +90,42 @@ namespace aiTools{
         }
 
         return ret;
+    }
+
+    /**
+     * Selects the best Action from a list of Actions.
+     * @tparam ActionType type of Action
+     * @tparam EvalFun type of function used for evaluating the actions' outcomes
+     * @param actionList list of actions to evaluate
+     * @param evalFun evaluation function for comparing outcomes of actions
+     * @return tuple of the best Action and its score
+     */
+    template <typename ActionType, typename EvalFun>
+    auto chooseBestAction(const std::vector<ActionType> &actionList, const EvalFun &evalFun) ->
+        std::tuple<typename std::vector<ActionType>::const_iterator, double>{
+        if(actionList.empty()){
+            throw std::runtime_error("List is empty. Cannot choose best entry");
+        }
+
+        double highestScore = -std::numeric_limits<double>::infinity();
+        std::optional<typename std::vector<ActionType>::const_iterator> best;
+        for(auto action = actionList.begin(); action < actionList.end(); ++action){
+            double tmpScore = 0;
+            for(const auto &outcome : action->executeAll()){
+                tmpScore += outcome.second * evalFun(outcome.first);
+            }
+
+            if(tmpScore > highestScore){
+                highestScore = tmpScore;
+                best.emplace(action);
+            }
+        }
+
+        if(!best.has_value()){
+            throw std::runtime_error("No best candidate found");
+        }
+
+        return {best.value(), highestScore};
     }
 }
 

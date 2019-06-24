@@ -30,10 +30,35 @@ auto setup::createEnv(const gameModel::Config &config) -> std::shared_ptr<gameMo
 
     gameModel::Fanblock f(1, 2, 2, 1, 1);
 
-    auto t1 = std::make_shared<gameModel::Team>(s1, k1, std::array<gameModel::Beater, 2>{b1, b2}, std::array<gameModel::Chaser, 3>{c1, c2, c3}, 0, f);
-    auto t2 = std::make_shared<gameModel::Team>(s2, k2, std::array<gameModel::Beater, 2>{b3, b4}, std::array<gameModel::Chaser, 3>{c4, c5, c6}, 0, f);
+    auto t1 = std::make_shared<gameModel::Team>(s1, k1, std::array<gameModel::Beater, 2>{b1, b2}, std::array<gameModel::Chaser, 3>{c1, c2, c3}, 0, f, gameModel::TeamSide::LEFT);
+    auto t2 = std::make_shared<gameModel::Team>(s2, k2, std::array<gameModel::Beater, 2>{b3, b4}, std::array<gameModel::Chaser, 3>{c4, c5, c6}, 0, f, gameModel::TeamSide::RIGHT);
 
     return std::make_shared<gameModel::Environment>(config, t1, t2);
+}
+
+auto setup::createSymmetricEnv() -> std::shared_ptr<gameModel::Environment> {
+
+    auto env = createEnv();
+
+    env->team1->keeper->position = {6, 7};
+    env->team2->keeper->position = {10, 7};
+
+    env->team1->seeker->position = {6, 6};
+    env->team2->seeker->position = {10, 6};
+
+    env->team1->beaters[0]->position = {6, 4};
+    env->team1->beaters[1]->position = {6, 5};
+    env->team2->beaters[0]->position = {10, 4};
+    env->team2->beaters[1]->position = {10, 5};
+
+    env->team1->chasers[0]->position = {6, 0};
+    env->team1->chasers[1]->position = {6, 1};
+    env->team1->chasers[2]->position = {6, 2};
+    env->team2->chasers[0]->position = {10, 0};
+    env->team2->chasers[1]->position = {10, 1};
+    env->team2->chasers[2]->position = {10, 2};
+
+    return env;
 }
 
 
