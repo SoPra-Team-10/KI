@@ -55,70 +55,6 @@ namespace ai {
         return ret;
     }
 
-    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env,
-                        communication::messages::broadcast::Next &next) -> const communication::messages::request::DeltaRequest {
-        communication::messages::types::EntityId activeEntityId = next.getEntityId();
-        std::optional<communication::messages::types::EntityId> passiveEntityId;
-        if (activeEntityId == communication::messages::types::EntityId::LEFT_NIFFLER ||
-            activeEntityId == communication::messages::types::EntityId::RIGHT_NIFFLER) {
-            if(isNifflerUseful(mySide, env)){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }
-        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_ELF ||
-                 activeEntityId == communication::messages::types::EntityId::RIGHT_ELF){
-            passiveEntityId = isElfUseful(mySide, env);
-            if(passiveEntityId.has_value()){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }
-        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_TROLL ||
-                 activeEntityId == communication::messages::types::EntityId::RIGHT_TROLL){
-            if(isTrollUseful(mySide, env)){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }
-        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_GOBLIN ||
-                 activeEntityId == communication::messages::types::EntityId::RIGHT_GOBLIN){
-            if(isGoblinUseful(mySide, env)){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }
-        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_WOMBAT ||
-                 activeEntityId == communication::messages::types::EntityId::RIGHT_WOMBAT){
-            if(isWombatUseful(mySide, env)){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-            }
-        } else{
-            return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                  std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
-        }
-    }
-
-    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env){
-        if (mySide == env->team1->side) {
-            return getDistance(env->team2->seeker->position, env->snitch->position) <= 2;
-        }else{
-            return getDistance(env->team1->seeker->position, env->snitch->position) <= 2;
-        }
-    }
-
     auto getAllCrossedCells(const gameModel::Position &startPoint, const gameModel::Position &endPoint) ->
     std::vector<gameModel::Position> {
 
@@ -186,5 +122,111 @@ namespace ai {
         }
 
         return totalDistance;
+    }
+
+    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env,
+                        communication::messages::broadcast::Next &next) -> const communication::messages::request::DeltaRequest {
+        communication::messages::types::EntityId activeEntityId = next.getEntityId();
+        std::optional<communication::messages::types::EntityId> passiveEntityId;
+        if (activeEntityId == communication::messages::types::EntityId::LEFT_NIFFLER ||
+            activeEntityId == communication::messages::types::EntityId::RIGHT_NIFFLER) {
+            if(isNifflerUseful(mySide, env)){
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_ELF ||
+                 activeEntityId == communication::messages::types::EntityId::RIGHT_ELF){
+            passiveEntityId = isElfUseful(mySide, env);
+            if(passiveEntityId.has_value()){
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_TROLL ||
+                 activeEntityId == communication::messages::types::EntityId::RIGHT_TROLL){
+            if(isTrollUseful(mySide, env)){
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::TROLL_ROAR, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_GOBLIN ||
+                 activeEntityId == communication::messages::types::EntityId::RIGHT_GOBLIN){
+            passiveEntityId = isGoblinUseful(mySide, env);
+            if(passiveEntityId.has_value()){
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::GOBLIN_SHOCK, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_WOMBAT ||
+                 activeEntityId == communication::messages::types::EntityId::RIGHT_WOMBAT){
+            std::optional<std::vector<int, int>> newPosition;
+            if(newPosition.has_value()){
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::WOMBAT_POO, std::nullopt, std::nullopt, std::nullopt, newPosition[0], newPosition[1],
+                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        } else{
+            return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                                                  std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+    }
+
+    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env){
+        if (mySide == env->team1->side) {
+            return getDistance(env->team2->seeker->position, env->snitch->position) <= 2;
+        }else{
+            return getDistance(env->team1->seeker->position, env->snitch->position) <= 2;
+        }
+    }
+
+    bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env) {
+        if (mySide == env->team1->side) {
+            for(const auto &chase : env->team2->chasers){
+                if(chase->position == env->quaffle->position){
+                    return true;
+                }
+            }
+        }else {
+            for(const auto &chase : env->team1->chasers){
+                if(chase->position == env->quaffle->position){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    auto isGoblinUseful(const gameModel::TeamSide &mySide,
+                        const std::shared_ptr<gameModel::Environment> &env) -> std::optional<communication::messages::types::EntityId> {
+        if (mySide == env->team1->side) {
+            for(const auto &chase : env->team2->chasers){
+                if(chase->position == env->quaffle->position){
+                    return chase->id;
+                }
+            }
+        }else {
+            for(const auto &chase : env->team1->chasers){
+                if(chase->position == env->quaffle->position){
+                    return chase->id;
+                }
+            }
+        }
+        return std::nullopt;
+    }
+
+    auto isElfUseful(const gameModel::TeamSide &mySide,
+                     const std::shared_ptr<gameModel::Environment> &env) -> std::optional<communication::messages::types::EntityId> {
+        return std::optional<communication::messages::types::EntityId>();
     }
 }

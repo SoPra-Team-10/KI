@@ -36,7 +36,7 @@ namespace ai{
 
     bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
 
-    bool isGoblinUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
+    auto isGoblinUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env) -> std::optional<communication::messages::types::EntityId>;
 
     bool isWombatUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<gameModel::Environment> &env);
 
