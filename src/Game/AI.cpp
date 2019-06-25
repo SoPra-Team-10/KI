@@ -17,9 +17,11 @@ namespace ai{
         constexpr auto disqPenalty = 2000;
         constexpr auto unbanDiscountFactor = 150;
         constexpr auto maxBanCount = 3;
-        constexpr auto farBehindPenalty = 700;
-        constexpr auto scoreDiffFarBehindDiscountFactor = 10;
-        constexpr auto scoreDiffDiscountFactor = 15;
+        constexpr auto farBehindPenalty = 3000;
+        constexpr auto leadBonus = 1000;
+        constexpr auto scoreDiffFarBehindDiscountFactor = 200;
+        constexpr auto scoreDiffDiscountFactor = 150;
+        constexpr auto scoreDiffInLeadDiscountFactor = 100;
 
         double val = 0;
         auto localEnv = env->clone();
@@ -48,9 +50,9 @@ namespace ai{
         int scoreDiff = localEnv->getTeam(gameModel::TeamSide::LEFT)->score -
                             localEnv->getTeam(gameModel::TeamSide::RIGHT)->score;
         if(scoreDiff < -gameController::SNITCH_POINTS) {
-            val -= farBehindPenalty + scoreDiff * scoreDiffFarBehindDiscountFactor;
+            val += -farBehindPenalty + scoreDiff * scoreDiffFarBehindDiscountFactor;
         } else if(scoreDiff > gameController::SNITCH_POINTS) {
-            val += farBehindPenalty + scoreDiff * scoreDiffFarBehindDiscountFactor;
+            val += leadBonus + scoreDiff * scoreDiffInLeadDiscountFactor;
         } else {
             val += scoreDiff * scoreDiffDiscountFactor;
         }
@@ -73,6 +75,7 @@ namespace ai{
 
     double evalSeeker(const std::shared_ptr<const gameModel::Seeker> &seeker,
                       const std::shared_ptr<const gameModel::Environment> &env) {
+        constexpr auto optimalPathThreshold = 5;
         constexpr auto gameLosePenalty = 2000;
         constexpr auto baseSnitchdistanceDiscount = 200.0;
         constexpr auto winSnitchDistanceDiscount = 1000.0;
@@ -110,7 +113,7 @@ namespace ai{
                 }
             }
             else {
-                if(gameController::getDistance(seeker->position, env->snitch->position) > 6) {
+                if(gameController::getDistance(seeker->position, env->snitch->position) > optimalPathThreshold) {
                     val = winSnitchDistanceDiscount / (gameController::getDistance(seeker->position, env->snitch->position) + 1);
                 } else {
                     val = winSnitchDistanceDiscount / (computeOptimalPath(seeker, env->snitch->position, env).size() + 1);
@@ -125,16 +128,16 @@ namespace ai{
 
     double
     evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper, const std::shared_ptr<gameModel::Environment> &env) {
-        constexpr auto holdsQuaffleBaseDiscount = 100;
+        constexpr auto holdsQuaffleBaseDiscount = 250;
         constexpr auto keeperBonusEvenWinChance = 20;
         constexpr auto keeperBonusHighWinChance = 500;
-        constexpr auto goalChanceDiscountFactorBehind = 200;
-        constexpr auto goalChanceDiscountFactorInLead = 20;
-        constexpr auto goalChanceDiscountFactorEven = 50;
+        constexpr auto goalChanceDiscountFactorBehind = 1000;
+        constexpr auto goalChanceDiscountFactorInLead = 200;
+        constexpr auto goalChanceDiscountFactorEven = 400;
         constexpr auto baseQuaffleDistanceDiscount = 100.0;
-        constexpr auto goalPotentialChanceDiscountFactorBehind = 100;
-        constexpr auto goalPotentialChanceDiscountFactorInLead = 10;
-        constexpr auto goalPotentialChanceDiscountFactorEven = 20;
+        constexpr auto goalPotentialChanceDiscountFactorBehind = 500;
+        constexpr auto goalPotentialChanceDiscountFactorInLead = 100;
+        constexpr auto goalPotentialChanceDiscountFactorEven = 200;
         constexpr auto baseVal = 150;
         constexpr auto keeperBonusPotentialEvenWinChance = 10;
         constexpr auto keeperBonusPotentialHighWinChance = 200;
@@ -202,14 +205,14 @@ namespace ai{
 
     double evalChaser(const std::shared_ptr<gameModel::Chaser> &chaser,
                       const std::shared_ptr<gameModel::Environment> &env) {
-        constexpr auto goalChanceDiscountFactorBehind = 200;
-        constexpr auto goalChanceDiscountFactorInLead = 40;
-        constexpr auto goalChanceDiscountFactorEven = 100;
+        constexpr auto goalChanceDiscountFactorBehind = 1000;
+        constexpr auto goalChanceDiscountFactorInLead = 200;
+        constexpr auto goalChanceDiscountFactorEven = 400;
         constexpr auto baseQuaffleDistanceDiscount = 100.0;
-        constexpr auto holdsQuaffleBaseDiscount = 100;
-        constexpr auto goalPotentialChanceDiscountFactorBehind = 100;
-        constexpr auto goalPotentialChanceDiscountFactorInLead = 20;
-        constexpr auto goalPotentialChanceDiscountFactorEven = 50;
+        constexpr auto holdsQuaffleBaseDiscount = 250;
+        constexpr auto goalPotentialChanceDiscountFactorBehind = 500;
+        constexpr auto goalPotentialChanceDiscountFactorInLead = 100;
+        constexpr auto goalPotentialChanceDiscountFactorEven = 200;
         constexpr auto baseVal = 100;
 
         double val = 0;
@@ -260,23 +263,24 @@ namespace ai{
         constexpr auto keeperBaseThreat = 10.0;
         constexpr auto seekerBaseThreat = 20.0;
         constexpr auto chaserBaseThreat = 10.0;
-        constexpr auto beaterBaseThreat = 20.0;
+        constexpr auto beaterBaseThreat = 40.0;
+        constexpr auto beaterHoldsBludgerDiscount = 50;
 
         auto calcThreat = [&env, &mySide](const std::shared_ptr<const gameModel::Team> &team){
             double val = 0;
             for(const auto &bludger : env->bludgers){
                 const auto &bPos = bludger->position;
                 //eval team1
-                if (team->keeper->position != bludger->position) {
+                if (!team->keeper->isFined && team->keeper->position != bludger->position) {
                     val -= keeperBaseThreat / gameController::getDistance(bPos, env->team1->keeper->position);
                 }
 
-                if (team->seeker->position != bPos) {
+                if (!team->seeker->isFined && team->seeker->position != bPos) {
                     val -= seekerBaseThreat / gameController::getDistance(bPos, env->team1->seeker->position);
                 }
 
                 for (const auto &chaser : team->chasers) {
-                    if (chaser->position != bPos) {
+                    if (!chaser->isFined && chaser->position != bPos) {
                         val -= chaserBaseThreat / gameController::getDistance(bPos, chaser->position);
                     }
                 }
@@ -284,6 +288,8 @@ namespace ai{
                 for (const auto &beater : team->beaters) {
                     if (beater->position != bPos) {
                         val += beaterBaseThreat / gameController::getDistance(bPos, beater->position);
+                    } else {
+                        val += beaterHoldsBludgerDiscount;
                     }
                 }
             }
