@@ -361,7 +361,7 @@ namespace ai{
         return ret;
     }
 
-    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<gameModel::Player> &player) {
+    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<const gameModel::Player> &player) {
         std::shared_ptr<gameModel::Team> team = env->team1;
         if (env->team2->hasMember(player)) {
             team = env->team2;
@@ -370,7 +370,7 @@ namespace ai{
             return true;
         }
 
-        for (const auto chaser:team->chasers) {
+        for (const auto chaser : team->chasers) {
             if (chaser->position == env->quaffle->position) {
                 return true;
             }

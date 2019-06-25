@@ -86,7 +86,7 @@ namespace ai {
      * @param player The player on the team to check
      * @return True if either the keeper or a chaser of the respective team holds the quaffle
      */
-    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<gameModel::Player> &player);
+    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<const gameModel::Player> &player);
 
     /**
      * Computes the next move according to the current state of the game

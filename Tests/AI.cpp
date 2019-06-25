@@ -98,7 +98,7 @@ TEST(ai_test, team_has_quaffle_works_for_left){
     auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
     env->quaffle->position = leftTeam->keeper->position;
     auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
-    EXPECT_EQ(res, true);
+    EXPECT_TRUE(res);
 }
 
 TEST(ai_test, team_has_quaffle_works_for_left_when_false){
@@ -107,7 +107,7 @@ TEST(ai_test, team_has_quaffle_works_for_left_when_false){
     auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
     env->quaffle->position = rightTeam->keeper->position;
     auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
-    EXPECT_EQ(res, false);
+    EXPECT_FALSE(res);
 }
 
 TEST(ai_test, team_has_quaffle_works_for_right){
@@ -115,7 +115,7 @@ TEST(ai_test, team_has_quaffle_works_for_right){
     auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
     env->quaffle->position = rightTeam->keeper->position;
     auto res = ai::teamHasQuaffle(env, rightTeam->seeker);
-    EXPECT_EQ(res, true);
+    EXPECT_TRUE(res);
 }
 
 TEST(ai_test, team_has_quaffle_works_for_right_when_false){
@@ -124,7 +124,7 @@ TEST(ai_test, team_has_quaffle_works_for_right_when_false){
     auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
     env->quaffle->position = leftTeam->keeper->position;
     auto res = ai::teamHasQuaffle(env, rightTeam->seeker);
-    EXPECT_EQ(res, false);
+    EXPECT_FALSE(res);
 }
 
 TEST(ai_test, goal_Chance_from_neighboring_cell){
@@ -133,7 +133,7 @@ TEST(ai_test, goal_Chance_from_neighboring_cell){
     leftTeam->keeper->position = {13, 8};
     env->quaffle->position = leftTeam->keeper->position;
     auto chance = ai::getHighestGoalRate(env, leftTeam->keeper);
-    EXPECT_EQ(chance, env->config.gameDynamicsProbs.throwSuccess);
+    EXPECT_DOUBLE_EQ(chance, env->config.gameDynamicsProbs.throwSuccess);
 }
 
 TEST(ai_test, banned_Player_has_value_zero){
@@ -141,7 +141,7 @@ TEST(ai_test, banned_Player_has_value_zero){
     auto leftKeeper = env->getTeam(gameModel::TeamSide::LEFT)->keeper;
     leftKeeper->isFined = true;
     auto val = ai::evalKeeper(leftKeeper, env);
-    EXPECT_EQ(val, 0);
+    EXPECT_DOUBLE_EQ(val, 0);
 }
 
 //------------------------------------------compute best action---------------------------------------------------------
