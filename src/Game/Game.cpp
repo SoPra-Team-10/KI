@@ -6,10 +6,18 @@
  */
 
 #include "Game.hpp"
+#include "AI.h"
 #include <utility>
+#include <SopraGameLogic/conversions.h>
+#include <SopraGameLogic/GameController.h>
+
+constexpr unsigned int OVERTIME_INTERVAL = 3;
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
-    difficulty(difficulty), myConfig(std::move(ownTeamConfig)){}
+    difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
+    usedPlayersOpponent.reserve(7);
+    usedPlayersOwn.reserve(7);
+}
 
 auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart &matchStart)
     -> communication::messages::request::TeamFormation {
@@ -22,11 +30,11 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
     P b1Pos{6, 5};
     P b2Pos{6, 7};
     matchConfig = matchStart.getMatchConfig();
-    if(matchStart.getLeftTeamUserName() == myConfig.getTeamName()){
-        side = gameModel::TeamSide::LEFT;
+    if(matchStart.getLeftTeamConfig().getTeamName() == myConfig.getTeamName()){
+        mySide = gameModel::TeamSide::LEFT;
         theirConfig = matchStart.getRightTeamConfig();
     } else {
-        side = gameModel::TeamSide::RIGHT;
+        mySide = gameModel::TeamSide::RIGHT;
         theirConfig = matchStart.getLeftTeamConfig();
         mirrorPos(seekerPos);
         mirrorPos(keeperPos);
@@ -44,6 +52,24 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
 void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapshot) {
     using namespace communication::messages::types;
     currentRound = snapshot.getRound();
+    currentPhase = snapshot.getPhase();
+    goalScoredThisRound = snapshot.isGoalWasThrownThisRound();
+    auto lastDelta = snapshot.getLastDeltaBroadcast();
+    if(lastDelta.getDeltaType() == DeltaType::TURN_USED){
+        if(!lastDelta.getActiveEntity().has_value()){
+            throw std::runtime_error("Active entity id not set!");
+        }
+
+        if(gameLogic::conversions::idToSide(*lastDelta.getActiveEntity()) == mySide) {
+            usedPlayersOwn.emplace(*lastDelta.getActiveEntity());
+        } else {
+            usedPlayersOpponent.emplace(*lastDelta.getActiveEntity());
+        }
+    } else if(lastDelta.getDeltaType() == DeltaType::ROUND_CHANGE) {
+        usedPlayersOpponent.clear();
+        usedPlayersOwn.clear();
+    }
+
     auto quaf = std::make_shared<gameModel::Quaffle>(gameModel::Position{snapshot.getQuaffleX(), snapshot.getQuaffleY()});
     auto bludgers = std::array<std::shared_ptr<gameModel::Bludger>, 2>
             {std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger1X(),
@@ -75,17 +101,73 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         currentEnv.value()->snitch = snitch;
         currentEnv.value()->pileOfShit = pileOfShit;
     }
+
+    switch (overTimeState){
+        case gameController::ExcessLength::None:
+            if(currentRound == (*currentEnv)->config.maxRounds){
+                overTimeState = gameController::ExcessLength::Stage1;
+            }
+
+            break;
+        case gameController::ExcessLength::Stage1:
+            if(++overTimeCounter > OVERTIME_INTERVAL){
+                overTimeState = gameController::ExcessLength::Stage2;
+                overTimeCounter = 0;
+            }
+            break;
+        case gameController::ExcessLength::Stage2:
+            if((*currentEnv)->snitch->position == gameModel::Position{8, 6} &&
+               ++overTimeCounter > OVERTIME_INTERVAL){
+                overTimeState = gameController::ExcessLength::Stage3;
+            }
+            break;
+        case gameController::ExcessLength::Stage3:
+            break;
+    }
 }
 
-auto Game::getNextAction(const communication::messages::broadcast::Next &)
-    -> communication::messages::request::DeltaRequest {
-    return communication::messages::request::DeltaRequest();
+auto Game::getNextAction(const communication::messages::broadcast::Next &next)
+    -> std::optional<communication::messages::request::DeltaRequest> {
+    using namespace communication::messages;
+    if(!currentEnv.has_value()){
+        throw std::runtime_error("Local environment not set!");
+    }
+
+    if(gameLogic::conversions::idToSide(next.getEntityId()) != mySide){
+        return std::nullopt;
+    }
+
+    switch (next.getTurnType()){
+        case communication::messages::types::TurnType::MOVE:
+            return ai::computeBestMove(*currentEnv, next.getEntityId(), goalScoredThisRound);
+        case communication::messages::types::TurnType::ACTION:{
+            auto type = gameController::getPossibleBallActionType(
+                    (*currentEnv)->getPlayerById(next.getEntityId()), *currentEnv);
+            if(!type.has_value()){
+                throw std::runtime_error("No action possible");
+            }
+
+            if(*type == gameController::ActionType::Throw) {
+                return ai::computeBestShot(*currentEnv, next.getEntityId(), goalScoredThisRound);
+            } else if(*type == gameController::ActionType::Wrest) {
+                return ai::computeBestWrest(*currentEnv, next.getEntityId(), goalScoredThisRound);
+            } else {
+                throw std::runtime_error("Unexpected action type");
+            }
+        }
+        case communication::messages::types::TurnType::FAN:
+            return ai::getNextFanTurn(mySide, *currentEnv, next, overTimeState);
+        case communication::messages::types::TurnType::REMOVE_BAN:
+            return ai::redeployPlayer(*currentEnv, next.getEntityId());
+        default:
+            throw std::runtime_error("Enum out of bounds");
+    }
 }
 
 auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
         std::shared_ptr<gameModel::Team> {
     using ID = communication::messages::types::EntityId;
-    auto teamConf = teamSide == side ? myConfig : theirConfig;
+    auto teamConf = teamSide == mySide ? myConfig : theirConfig;
     bool left = teamSide == gameModel::TeamSide::LEFT;
     gameModel::Seeker seeker(gameModel::Position{teamSnapshot.getSeekerX(), teamSnapshot.getSeekerY()}, teamConf.getSeeker().getBroom(),
             left ? ID::LEFT_SEEKER : ID::RIGHT_SEEKER);

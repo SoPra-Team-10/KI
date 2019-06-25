@@ -10,6 +10,7 @@
 
 namespace ai{
     constexpr auto minShotSuccessProb = 0.2;
+    constexpr int distanceSnitchSeeker = 2;
 
     double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound) {
         constexpr auto disqPenalty = 2000;
@@ -305,19 +306,19 @@ namespace ai{
             return {};
         }
 
-        auto expandFunction = [&env, &player](const aiTools::SearchNode<gameModel::Position> &node){
+        auto expandFunction = [&env, &player](const aiTools::SearchNode<gameModel::Position> &node) {
             std::vector<aiTools::SearchNode<gameModel::Position>> path;
             path.reserve(8);
             auto parent = std::make_shared<aiTools::SearchNode<gameModel::Position>>(node);
-            for(const auto &pos : env->getAllLegalCellsAround(node.state, env->team1->hasMember(player))){
+            for (const auto &pos : env->getAllLegalCellsAround(node.state, env->team1->hasMember(player))) {
                 path.emplace_back(pos, parent, node.pathCost + 1);
             }
 
             return path;
         };
 
-        auto evalFunction = [&destination](const aiTools::SearchNode<gameModel::Position> &pos){
-            int g = pos.parent.has_value() ? pos.parent.value()->pathCost + 1: 1;
+        auto evalFunction = [&destination](const aiTools::SearchNode<gameModel::Position> &pos) {
+            int g = pos.parent.has_value() ? pos.parent.value()->pathCost + 1 : 1;
             return g + gameController::getDistance(pos.state, destination);
         };
 
@@ -325,11 +326,11 @@ namespace ai{
         aiTools::SearchNode<gameModel::Position> destinationNode(destination, std::nullopt, 0);
         auto res = aiTools::aStarSearch(startNode, destinationNode, expandFunction, evalFunction);
         std::vector<gameModel::Position> ret;
-        if(res.has_value()){
+        if (res.has_value()) {
             ret.reserve(res->pathCost + 1);
             ret.emplace_back(res->state);
             auto parent = res->parent;
-            while(parent.has_value()){
+            while (parent.has_value()) {
                 ret.emplace_back((*parent)->state);
                 parent = (*parent)->parent;
             }
@@ -422,5 +423,128 @@ namespace ai{
             return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
+    }
+
+    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env, communication::messages::types::EntityId id) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto bestScore = -std::numeric_limits<double>::infinity();
+        gameModel::Position redeployPos(0, 0);
+        for(const auto &pos : env->getFreeCellsForRedeploy(mySide)){
+            auto newEnv = env->clone();
+            newEnv->getPlayerById(id)->position = pos;
+            newEnv->getPlayerById(id)->isFined = false;
+            auto score = evalState(newEnv, mySide, false);
+            if(score > bestScore) {
+                bestScore = score;
+                redeployPos = pos;
+            }
+        }
+
+
+        return request::DeltaRequest{types::DeltaType::UNBAN, std::nullopt, std::nullopt, std::nullopt, redeployPos.x, redeployPos.y, id,
+                                     std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+    }
+
+    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
+                        const communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength) ->
+                        const communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto activeEntityId = next.getEntityId();
+        std::optional<types::EntityId> passiveEntityId;
+        if (activeEntityId == types::EntityId::LEFT_NIFFLER ||
+            activeEntityId == types::EntityId::RIGHT_NIFFLER) {
+            if(isNifflerUseful(mySide, env)){
+                return request::DeltaRequest{types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        }else if(activeEntityId == types::EntityId::LEFT_ELF ||
+                 activeEntityId == types::EntityId::RIGHT_ELF){
+            passiveEntityId = getElfTarget(mySide, env, excessLength);
+            if(passiveEntityId.has_value()){
+                return request::DeltaRequest{types::DeltaType::ELF_TELEPORTATION, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        }else if(activeEntityId == types::EntityId::LEFT_TROLL ||
+                 activeEntityId == types::EntityId::RIGHT_TROLL){
+            if(isTrollUseful(mySide, env)){
+                return request::DeltaRequest{types::DeltaType::TROLL_ROAR, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        }else if(activeEntityId == types::EntityId::LEFT_GOBLIN ||
+                 activeEntityId == types::EntityId::RIGHT_GOBLIN){
+            passiveEntityId = getGoblinTarget(mySide, env);
+            if(passiveEntityId.has_value()){
+                return request::DeltaRequest{types::DeltaType::GOBLIN_SHOCK, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }else{
+                return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            }
+        }else{
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                         std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+    }
+
+    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env){
+        if (mySide == env->team1->side) {
+            return gameController::getDistance(env->team2->seeker->position, env->snitch->position) <= distanceSnitchSeeker;
+        }else{
+            return gameController::getDistance(env->team1->seeker->position, env->snitch->position) <= distanceSnitchSeeker;
+        }
+    }
+
+    bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env) {
+        auto player = env->getPlayer(env->quaffle->position);
+        if(player.has_value()) {
+            if(mySide != env->getTeam(player.value())->side) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    auto getGoblinTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env)->
+        const std::optional<communication::messages::types::EntityId> {
+        auto opponentGoals = env->getGoalsRight();
+        if(mySide == gameModel::TeamSide::RIGHT) {
+            opponentGoals = env->getGoalsLeft();
+        }
+
+        for(const auto &goal : opponentGoals){
+            auto player = env->getPlayer(goal);
+            if(player.has_value() && !env->getTeam(mySide)->hasMember(player.value())){
+                return player.value()->id;
+            }
+        }
+        return std::nullopt;
+    }
+
+    auto getElfTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
+                      const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId> {
+        if(env->snitch->exists) {
+            std::shared_ptr<gameModel::Environment> environment = env->clone();
+            gameController::moveSnitch(environment->snitch, environment, excessLength);
+            if (mySide == environment->team1->side) {
+                if (gameController::getDistance(environment->team2->seeker->position, environment->snitch->position) <= distanceSnitchSeeker) {
+                    return environment->team2->seeker->id;
+                }
+            } else {
+                if (gameController::getDistance(environment->team1->seeker->position, environment->snitch->position) <= distanceSnitchSeeker) {
+                    return environment->team1->seeker->id;
+                }
+            }
+        }
+        return std::nullopt;
     }
 }
