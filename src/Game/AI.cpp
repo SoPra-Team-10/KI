@@ -426,6 +426,27 @@ namespace ai{
         }
     }
 
+    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env, communication::messages::types::EntityId id) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto bestScore = -std::numeric_limits<double>::infinity();
+        gameModel::Position redeployPos(0, 0);
+        for(const auto &pos : env->getFreeCellsForRedeploy(mySide)){
+            auto newEnv = env->clone();
+            newEnv->getPlayerById(id)->position = pos;
+            newEnv->getPlayerById(id)->isFined = false;
+            auto score = evalState(newEnv, mySide, false);
+            if(score > bestScore) {
+                bestScore = score;
+                redeployPos = pos;
+            }
+        }
+
+
+        return request::DeltaRequest{types::DeltaType::UNBAN, std::nullopt, std::nullopt, std::nullopt, redeployPos.x, redeployPos.y, id,
+                                     std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+    }
+
     auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
                         communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength) -> const communication::messages::request::DeltaRequest {
         communication::messages::types::EntityId activeEntityId = next.getEntityId();

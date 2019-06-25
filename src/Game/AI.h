@@ -118,6 +118,15 @@ namespace ai {
             bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
 
     /**
+     * Computes the Position where the banned Player should be redeployed
+     * @param env the current game state
+     * @param id the ID of the player to perform a shot
+     * @return unban request as DeltaRequest
+     */
+    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env, communication::messages::types::EntityId id)
+        -> communication::messages::request::DeltaRequest;
+
+    /**
      * evaluates if it is necessary to use a fan
      * @param env is the actual Environment
      * @param next gives the next EntityID
