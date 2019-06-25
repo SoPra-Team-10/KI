@@ -13,8 +13,8 @@
 
 constexpr unsigned int OVERTIME_INTERVAL = 3;
 
-Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
-    difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
+Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging &log) :
+    difficulty(difficulty), myConfig(std::move(ownTeamConfig)), log(log){
     usedPlayersOpponent.reserve(7);
     usedPlayersOwn.reserve(7);
 }
@@ -124,6 +124,8 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         case gameController::ExcessLength::Stage3:
             break;
     }
+
+    log.debug(std::string("Environment after snapshot: ") + std::to_string(ai::evalState(*currentEnv, mySide, goalScoredThisRound)));
 }
 
 auto Game::getNextAction(const communication::messages::broadcast::Next &next)
@@ -139,7 +141,7 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
 
     switch (next.getTurnType()){
         case communication::messages::types::TurnType::MOVE:
-            return ai::computeBestMove(*currentEnv, next.getEntityId(), goalScoredThisRound);
+            return ai::computeBestMove(*currentEnv, next.getEntityId(), goalScoredThisRound, log);
         case communication::messages::types::TurnType::ACTION:{
             auto type = gameController::getPossibleBallActionType(
                     (*currentEnv)->getPlayerById(next.getEntityId()), *currentEnv);
@@ -148,9 +150,9 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
             }
 
             if(*type == gameController::ActionType::Throw) {
-                return ai::computeBestShot(*currentEnv, next.getEntityId(), goalScoredThisRound);
+                return ai::computeBestShot(*currentEnv, next.getEntityId(), goalScoredThisRound, log);
             } else if(*type == gameController::ActionType::Wrest) {
-                return ai::computeBestWrest(*currentEnv, next.getEntityId(), goalScoredThisRound);
+                return ai::computeBestWrest(*currentEnv, next.getEntityId(), goalScoredThisRound, log);
             } else {
                 throw std::runtime_error("Unexpected action type");
             }
@@ -158,7 +160,7 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
         case communication::messages::types::TurnType::FAN:
             return ai::getNextFanTurn(mySide, *currentEnv, next, overTimeState);
         case communication::messages::types::TurnType::REMOVE_BAN:
-            return ai::redeployPlayer(*currentEnv, next.getEntityId());
+            return ai::redeployPlayer(*currentEnv, next.getEntityId(), log);
         default:
             throw std::runtime_error("Enum out of bounds");
     }

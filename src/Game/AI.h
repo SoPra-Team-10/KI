@@ -9,6 +9,8 @@
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/GameController.h>
 #include <SopraMessages/Message.hpp>
+#include <SopraUtil/Logging.hpp>
+
 namespace ai {
 
     /**
@@ -18,7 +20,8 @@ namespace ai {
      * @param goalScoredThisRound Wheather or not a goal was scored this round
      * @return A number indicating how favorable the current situation is. The higher the number the better
      */
-    double evalState(const std::shared_ptr<const gameModel::Environment> &environment, gameModel::TeamSide mySide, bool goalScoredThisRound);
+    double evalState(const std::shared_ptr<const gameModel::Environment> &environment, gameModel::TeamSide mySide,
+                     bool goalScoredThisRound);
 
     /**
      * Evaluates the positioning of players in a single team
@@ -26,8 +29,7 @@ namespace ai {
      * @param env The environment the team is playing in
      * @return A number indicating the value of the team
      */
-    double evalTeam(const std::shared_ptr<const gameModel::Team> &team,
-                    const std::shared_ptr<gameModel::Environment> &env);
+    double evalTeam(const std::shared_ptr<const gameModel::Team> &team, const std::shared_ptr<gameModel::Environment> &env);
 
     /**
      * Evaluates the positioning of a seeker
@@ -43,8 +45,7 @@ namespace ai {
      * @param env Environment the keeper is in
      * @return A number that indicates the value of the keeper
      */
-    double evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper,
-                      const std::shared_ptr<gameModel::Environment> &env);
+    double evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper, const std::shared_ptr<gameModel::Environment> &env);
 
     /**
      * Evaluates the positioning of a chaser
@@ -100,7 +101,7 @@ namespace ai {
      * @return next move as DeltaRequest
      */
     auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
-            bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
+                    bool goalScoredThisRound, util::Logging &log) -> communication::messages::request::DeltaRequest;
 
     /**
      * Computes the next shot according to the current state of the game
@@ -111,7 +112,7 @@ namespace ai {
      * @return next shot as DeltaRequest
      */
     auto computeBestShot(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
-            bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
+                    bool goalScoredThisRound, util::Logging &log) -> communication::messages::request::DeltaRequest;
 
 
     /**
@@ -123,7 +124,7 @@ namespace ai {
      * @return next wrest as DeltaRequest
      */
     auto computeBestWrest(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
-            bool goalScoredThisRound) -> communication::messages::request::DeltaRequest;
+                     bool goalScoredThisRound, util::Logging &log) -> communication::messages::request::DeltaRequest;
 
     /**
      * Computes the Position where the banned Player should be redeployed
@@ -131,7 +132,9 @@ namespace ai {
      * @param id the ID of the player to perform a shot
      * @return unban request as DeltaRequest
      */
-    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env, communication::messages::types::EntityId id)
+    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env,
+                        communication::messages::types::EntityId id,
+                        util::Logging &log)
         -> communication::messages::request::DeltaRequest;
 
     /**

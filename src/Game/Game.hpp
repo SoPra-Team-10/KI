@@ -16,11 +16,12 @@
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/GameController.h>
 #include <unordered_set>
+#include <SopraUtil/Logging.hpp>
 
 
 class Game {
 public:
-    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig);
+    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging &log);
 
     /**
      * Gets the TeamFormation for the match
@@ -57,6 +58,7 @@ private:
     std::unordered_set<communication::messages::types::EntityId> usedPlayersOpponent = {};
     gameController::ExcessLength overTimeState = gameController::ExcessLength::None;
     unsigned overTimeCounter = 0;
+    util::Logging log;
 
 
     /**

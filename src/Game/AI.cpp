@@ -12,7 +12,8 @@ namespace ai{
     constexpr auto minShotSuccessProb = 0.2;
     constexpr int distanceSnitchSeeker = 2;
 
-    double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound) {
+    double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide,
+                     bool goalScoredThisRound) {
         constexpr auto disqPenalty = 2000;
         constexpr auto unbanDiscountFactor = 150;
         constexpr auto maxBanCount = 3;
@@ -58,11 +59,8 @@ namespace ai{
         return mySide == gameModel::TeamSide::LEFT ? val : -val;
     }
 
-    double evalTeam(const std::shared_ptr<const gameModel::Team> &team,
-                    const std::shared_ptr<gameModel::Environment> &env) {
-
+    double evalTeam(const std::shared_ptr<const gameModel::Team> &team, const std::shared_ptr<gameModel::Environment> &env) {
         double val = 0;
-
         val += evalSeeker(team->seeker, env);
         val += evalKeeper(team->keeper, env);
         for(const auto &chaser : team->chasers){
@@ -125,8 +123,8 @@ namespace ai{
         return val;
     }
 
-    double evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper,
-                      const std::shared_ptr<gameModel::Environment> &env) {
+    double
+    evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper, const std::shared_ptr<gameModel::Environment> &env) {
         constexpr auto holdsQuaffleBaseDiscount = 100;
         constexpr auto keeperBonusEvenWinChance = 20;
         constexpr auto keeperBonusHighWinChance = 500;
@@ -372,7 +370,7 @@ namespace ai{
     }
 
     auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
-                    bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+                    bool goalScoredThisRound, util::Logging &log) -> communication::messages::request::DeltaRequest {
         using namespace communication::messages;
         auto mySide = gameLogic::conversions::idToSide(id);
         auto player = env->getPlayerById(id);
@@ -386,7 +384,10 @@ namespace ai{
         };
 
         auto [best, score] = aiTools::chooseBestAction(moves, evalFun);
-        if(score < evalState(env, mySide, goalScoredThisRound)) {
+        auto currScore = evalState(env, mySide, goalScoredThisRound);
+        log.debug(std::string("Current env value: ") + std::to_string(currScore));
+        log.debug(std::string("Best move env value: ") + std::to_string(score));
+        if(score < currScore) {
             return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
@@ -396,7 +397,7 @@ namespace ai{
     }
 
     auto computeBestShot(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
-                    bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+                    bool goalScoredThisRound, util::Logging &log) -> communication::messages::request::DeltaRequest {
         using namespace communication::messages;
         auto mySide = gameLogic::conversions::idToSide(id);
         auto player = env->getPlayerById(id);
@@ -412,7 +413,10 @@ namespace ai{
         };
 
         auto [best, score] = aiTools::chooseBestAction(shots, evalFun);
-        if(score < evalState(env, mySide, goalScoredThisRound)){
+        auto currScore = evalState(env, mySide, goalScoredThisRound);
+        log.debug(std::string("Current env value: ") + std::to_string(currScore));
+        log.debug(std::string("Best shot env value: ") + std::to_string(score));
+        if(score < currScore){
             return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
                                          std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
@@ -429,8 +433,9 @@ namespace ai{
 
     }
 
-    auto computeBestWrest(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
-                     bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+    auto
+    computeBestWrest(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+                     bool goalScoredThisRound, util::Logging &log) -> communication::messages::request::DeltaRequest {
         using namespace communication::messages;
         auto mySide = gameLogic::conversions::idToSide(id);
         auto player = std::dynamic_pointer_cast<gameModel::Chaser>(env->getPlayerById(id));
@@ -449,6 +454,8 @@ namespace ai{
             wrestScore += outcome.second * evalState(outcome.first, mySide, goalScoredThisRound);
         }
 
+        log.debug(std::string("Current env value: ") + std::to_string(currentScore));
+        log.debug(std::string("Best wrest env value: ") + std::to_string(wrestScore));
         if(currentScore < wrestScore){
             return request::DeltaRequest{types::DeltaType::WREST_QUAFFLE, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
                                          id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
@@ -458,7 +465,9 @@ namespace ai{
         }
     }
 
-    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env, communication::messages::types::EntityId id) -> communication::messages::request::DeltaRequest {
+    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env,
+                        communication::messages::types::EntityId id,
+                        util::Logging &log) -> communication::messages::request::DeltaRequest {
         using namespace communication::messages;
         auto mySide = gameLogic::conversions::idToSide(id);
         auto bestScore = -std::numeric_limits<double>::infinity();
@@ -474,7 +483,7 @@ namespace ai{
             }
         }
 
-
+        log.debug("Redeploy");
         return request::DeltaRequest{types::DeltaType::UNBAN, std::nullopt, std::nullopt, std::nullopt, redeployPos.x, redeployPos.y, id,
                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
     }

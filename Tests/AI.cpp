@@ -75,14 +75,14 @@ TEST(ai_test, optimal_path_impossible){
 
 TEST(ai_test, ai_left_right_equal){
     auto env = setup::createSymmetricEnv();
-    auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false);
-    auto valRight = ai::evalState(env, gameModel::TeamSide::RIGHT, false);
+    auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false, <#initializer#>);
+    auto valRight = ai::evalState(env, gameModel::TeamSide::RIGHT, false, <#initializer#>);
     EXPECT_EQ(valLeft, valRight);
 }
 
 TEST(ai_test, ai_left_right_equal_zero){
     auto env = setup::createSymmetricEnv();
-    auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false);
+    auto valLeft = ai::evalState(env, gameModel::TeamSide::LEFT, false, <#initializer#>);
     EXPECT_EQ(valLeft, 0);
 }
 
@@ -90,7 +90,7 @@ TEST(ai_test, ai_is_winning){
     auto env = setup::createSymmetricEnv();
     auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
     leftTeam->score = 100;
-    auto val = ai::evalState(env, gameModel::TeamSide::LEFT, false);
+    auto val = ai::evalState(env, gameModel::TeamSide::LEFT, false, <#initializer#>);
     EXPECT_GT(val, 0);
 }
 
@@ -151,7 +151,7 @@ TEST(ai_test, computeBestMove){
     using namespace communication::messages;
     auto env = setup::createEnv();
     auto playerId = types::EntityId::LEFT_CHASER3;
-    auto res = ai::computeBestMove(env, playerId, false);
+    auto res = ai::computeBestMove(env, playerId, false, <#initializer#>);
     EXPECT_EQ(res.getActiveEntity(), playerId);
     EXPECT_THAT(res.getDeltaType(), testing::AnyOf(types::DeltaType::MOVE, types::DeltaType::SKIP));
     if(res.getDeltaType() == types::DeltaType::MOVE){
@@ -165,7 +165,7 @@ TEST(ai_test, computeBestShot){
     auto env = setup::createEnv({0, {}, {1, 0, 0, 0, 0}, {}});
     env->quaffle->position = env->team1->chasers[1]->position;
     auto playerId = types::EntityId::LEFT_CHASER2;
-    auto res = ai::computeBestShot(env, playerId, false);
+    auto res = ai::computeBestShot(env, playerId, false, <#initializer#>);
     EXPECT_EQ(res.getActiveEntity(), playerId);
     EXPECT_THAT(res.getDeltaType(), testing::AnyOf(types::DeltaType::QUAFFLE_THROW, types::DeltaType::SKIP));
     if(res.getDeltaType() == types::DeltaType::QUAFFLE_THROW){
@@ -179,7 +179,7 @@ TEST(ai_test, computeBestShotBludger){
     auto env = setup::createEnv({0, {}, {1, 1, 0, 0, 0}, {}});
     env->bludgers[0]->position = env->team1->beaters[1]->position;
     auto playerId = types::EntityId::LEFT_BEATER2;
-    auto res = ai::computeBestShot(env, playerId, false);
+    auto res = ai::computeBestShot(env, playerId, false, <#initializer#>);
     EXPECT_EQ(res.getActiveEntity(), playerId);
     EXPECT_THAT(res.getDeltaType(), testing::AnyOf(types::DeltaType::BLUDGER_BEATING, types::DeltaType::SKIP));
     if(res.getDeltaType() == types::DeltaType::BLUDGER_BEATING){
@@ -195,7 +195,7 @@ TEST(ai_test, computeBestWrest){
     env->quaffle->position = env->team1->chasers[1]->position;
     env->team2->chasers[0]->position = {8, 4};
     auto playerId = types::EntityId::RIGHT_CHASER1;
-    auto res = ai::computeBestWrest(env, playerId, false);
+    auto res = ai::computeBestWrest(env, playerId, false, <#initializer#>);
     EXPECT_EQ(res.getActiveEntity(), playerId);
     EXPECT_THAT(res.getDeltaType(), testing::AnyOf(types::DeltaType::WREST_QUAFFLE, types::DeltaType::SKIP));
     if(res.getDeltaType() == types::DeltaType::WREST_QUAFFLE){
@@ -215,7 +215,7 @@ TEST(ai_test, redeploy) {
     auto id = communication::messages::types::EntityId::LEFT_SEEKER;
     auto env = setup::createEnv();
     env->getPlayerById(id)->isFined = true;
-    auto res = ai::redeployPlayer(env, env->getPlayerById(id)->id);
+    auto res = ai::redeployPlayer(env, env->getPlayerById(id)->id, <#initializer#>);
     EXPECT_EQ(res.getDeltaType(), types::DeltaType::UNBAN);
     EXPECT_EQ(res.getActiveEntity(), id);
     gameModel::Position pos{res.getXPosNew().value(), res.getYPosNew().value()};
