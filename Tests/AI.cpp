@@ -209,7 +209,7 @@ TEST(ai_test, computeBestWrest){
 }
 //-------------------------------------redeploy-------------------------------------------------------------------------
 
-TEST(ai_test, redeploy){
+TEST(ai_test, redeploy) {
     using namespace communication::messages;
     auto id = communication::messages::types::EntityId::LEFT_SEEKER;
     auto env = setup::createEnv();

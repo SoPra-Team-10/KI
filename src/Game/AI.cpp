@@ -434,6 +434,7 @@ namespace ai{
         } else {
             throw std::runtime_error("Invalid shot was calculated");
         }
+
     }
 
     auto computeBestWrest(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
