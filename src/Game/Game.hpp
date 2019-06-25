@@ -14,6 +14,8 @@
 #include <SopraMessages/Next.hpp>
 #include <SopraMessages/DeltaRequest.hpp>
 #include <SopraGameLogic/GameModel.h>
+#include <SopraGameLogic/GameController.h>
+#include <unordered_set>
 
 
 class Game {
@@ -35,20 +37,27 @@ public:
     /**
      * Returns the AIs next action
      * @param next information from the server for the requested turn
-     * @return the next action by the AI
+     * @return the next action by the AI or nothing if not AIs turn
      */
     auto getNextAction(const communication::messages::broadcast::Next &next)
-        -> communication::messages::request::DeltaRequest;
+        -> std::optional<communication::messages::request::DeltaRequest>;
 
 private:
     static constexpr int FIELD_WIDTH = 16;
     int difficulty;
-    int currentRound = 1;
+    unsigned int currentRound = 1;
+    communication::messages::types::PhaseType currentPhase = communication::messages::types::PhaseType::BALL_PHASE;
+    bool goalScoredThisRound = false;
     std::optional<std::shared_ptr<gameModel::Environment>> currentEnv = std::nullopt;
-    gameModel::TeamSide side;
+    gameModel::TeamSide mySide;
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
+    std::unordered_set<communication::messages::types::EntityId> usedPlayersOwn = {};
+    std::unordered_set<communication::messages::types::EntityId> usedPlayersOpponent = {};
+    gameController::ExcessLength overTimeState = gameController::ExcessLength::None;
+    unsigned overTimeCounter = 0;
+
 
     /**
      * Constructs a Team object from a given TeamSnapshot

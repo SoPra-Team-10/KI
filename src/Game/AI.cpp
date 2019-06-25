@@ -447,7 +447,8 @@ namespace ai{
     }
 
     auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
-                        communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength) -> const communication::messages::request::DeltaRequest {
+                        const communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength) ->
+                        const communication::messages::request::DeltaRequest {
         using namespace communication::messages;
         auto activeEntityId = next.getEntityId();
         std::optional<types::EntityId> passiveEntityId;
