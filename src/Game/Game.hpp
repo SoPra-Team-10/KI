@@ -15,6 +15,7 @@
 #include <SopraMessages/DeltaRequest.hpp>
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/GameController.h>
+#include <unordered_set>
 
 
 class Game {
@@ -52,8 +53,8 @@ private:
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
-    std::vector<communication::messages::types::EntityId> usedPlayersOwn = {};
-    std::vector<communication::messages::types::EntityId> usedPlayersOpponent = {};
+    std::unordered_set<communication::messages::types::EntityId> usedPlayersOwn = {};
+    std::unordered_set<communication::messages::types::EntityId> usedPlayersOpponent = {};
     gameController::ExcessLength overTimeState = gameController::ExcessLength::None;
     unsigned overTimeCounter = 0;
 

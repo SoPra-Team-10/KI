@@ -61,9 +61,9 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         }
 
         if(gameLogic::conversions::idToSide(*lastDelta.getActiveEntity()) == mySide) {
-            usedPlayersOwn.emplace_back(*lastDelta.getActiveEntity());
+            usedPlayersOwn.emplace(*lastDelta.getActiveEntity());
         } else {
-            usedPlayersOpponent.emplace_back(*lastDelta.getActiveEntity());
+            usedPlayersOpponent.emplace(*lastDelta.getActiveEntity());
         }
     } else if(lastDelta.getDeltaType() == DeltaType::ROUND_CHANGE) {
         usedPlayersOpponent.clear();
