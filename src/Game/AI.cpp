@@ -6,8 +6,10 @@
 #include "AITools.h"
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/GameController.h>
+#include <SopraGameLogic/conversions.h>
 
 namespace ai{
+    constexpr auto minShotSuccessProb = 0.2;
 
     double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound) {
         constexpr auto disqPenalty = 2000;
@@ -62,7 +64,7 @@ namespace ai{
 
         val += evalSeeker(team->seeker, env);
         val += evalKeeper(team->keeper, env);
-        for(const auto chaser:team->chasers){
+        for(const auto &chaser : team->chasers){
             val += evalChaser(chaser, env);
         }
 
@@ -361,19 +363,126 @@ namespace ai{
 
     bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<gameModel::Player> &player) {
         std::shared_ptr<gameModel::Team> team = env->team1;
-        if(env->team2->hasMember(player)) {
+        if (env->team2->hasMember(player)) {
             team = env->team2;
         }
-        if(team->keeper->position == env->quaffle->position) {
+        if (team->keeper->position == env->quaffle->position) {
             return true;
         }
 
-        for(const auto chaser:team->chasers){
-            if(chaser->position == env->quaffle->position) {
+        for (const auto chaser:team->chasers) {
+            if (chaser->position == env->quaffle->position) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    auto computeBestMove(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+                    bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto player = env->getPlayerById(id);
+        auto moves = gameController::getAllPossibleMoves(player, env);
+        if(moves.empty()){
+            throw std::runtime_error("No move possible");
+        }
+
+        auto evalFun = [mySide, goalScoredThisRound] (const std::shared_ptr<const gameModel::Environment> &e){
+            return evalState(e, mySide, goalScoredThisRound);
+        };
+
+        auto [best, score] = aiTools::chooseBestAction(moves, evalFun);
+        if(score < evalState(env, mySide, goalScoredThisRound)) {
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+
+        return request::DeltaRequest{types::DeltaType::MOVE, std::nullopt, std::nullopt, std::nullopt, best->getTarget().x,
+                                     best->getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+    }
+
+    auto computeBestShot(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+                    bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto player = env->getPlayerById(id);
+        auto shots = gameController::getAllPossibleShots(player, env, minShotSuccessProb);
+        if(shots.empty()){
+            //No shot with decent success probability possible -> skip turn
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+
+        auto evalFun = [mySide, goalScoredThisRound] (const std::shared_ptr<const gameModel::Environment> &e){
+            return evalState(e, mySide, goalScoredThisRound);
+        };
+
+        auto [best, score] = aiTools::chooseBestAction(shots, evalFun);
+        if(score < evalState(env, mySide, goalScoredThisRound)){
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+
+        if(INSTANCE_OF(best->getBall(), const gameModel::Quaffle)){
+            return request::DeltaRequest{types::DeltaType::QUAFFLE_THROW, std::nullopt, std::nullopt, std::nullopt, best->getTarget().x,
+                                         best->getTarget().y, id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        } else if(INSTANCE_OF(best->getBall(), const gameModel::Bludger)){
+            return request::DeltaRequest{types::DeltaType::BLUDGER_BEATING, std::nullopt, std::nullopt, std::nullopt, best->getTarget().x,
+                                         best->getTarget().y, id, best->getBall()->id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        } else {
+            throw std::runtime_error("Invalid shot was calculated");
+        }
+    }
+
+    auto computeBestWrest(const std::shared_ptr<gameModel::Environment> &env, communication::messages::types::EntityId id,
+                     bool goalScoredThisRound) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto player = std::dynamic_pointer_cast<gameModel::Chaser>(env->getPlayerById(id));
+        if(!player){
+            throw std::runtime_error("Player is no Chaser");
+        }
+
+        gameController::WrestQuaffle wrest(env, player, env->quaffle->position);
+        if(wrest.check() == gameController::ActionCheckResult::Impossible){
+            throw std::runtime_error("Wrest is impossible");
+        }
+
+        auto currentScore = evalState(env, mySide, goalScoredThisRound);
+        double wrestScore = 0;
+        for(const auto &outcome : wrest.executeAll()){
+            wrestScore += outcome.second * evalState(outcome.first, mySide, goalScoredThisRound);
+        }
+
+        if(currentScore < wrestScore){
+            return request::DeltaRequest{types::DeltaType::WREST_QUAFFLE, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                         id, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        } else {
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, id,
+                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+        }
+    }
+
+    auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env, communication::messages::types::EntityId id) -> communication::messages::request::DeltaRequest {
+        using namespace communication::messages;
+        auto mySide = gameLogic::conversions::idToSide(id);
+        auto bestScore = -std::numeric_limits<double>::infinity();
+        gameModel::Position redeployPos(0, 0);
+        for(const auto &pos : env->getFreeCellsForRedeploy(mySide)){
+            auto newEnv = env->clone();
+            newEnv->getPlayerById(id)->position = pos;
+            newEnv->getPlayerById(id)->isFined = false;
+            auto score = evalState(newEnv, mySide, false);
+            if(score > bestScore) {
+                bestScore = score;
+                redeployPos = pos;
+            }
+        }
+
+
+        return request::DeltaRequest{types::DeltaType::UNBAN, std::nullopt, std::nullopt, std::nullopt, redeployPos.x, redeployPos.y, id,
+                                     std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
     }
 }
