@@ -1,9 +1,9 @@
 {
-    "name": "Team10",
+    "name": "VolleKanne",
     "motto": "Auch",
     "colors": {
-        "primary": "FFFFFF",
-        "secondary": "000000"
+        "primary": "000000",
+        "secondary": "FFFFFF"
     },
     "image": "(string/base64/png)",
     "fans": {

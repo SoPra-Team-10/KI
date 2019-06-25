@@ -6,6 +6,9 @@
 #define KI_AI_H
 
 #include "Game.hpp"
+#include <SopraGameLogic/GameModel.h>
+#include <SopraGameLogic/GameController.h>
+#include <SopraMessages/Message.hpp>
 namespace ai {
 
     /**
@@ -130,6 +133,50 @@ namespace ai {
      */
     auto redeployPlayer(const std::shared_ptr<const gameModel::Environment> &env, communication::messages::types::EntityId id)
         -> communication::messages::request::DeltaRequest;
+
+    /**
+     * evaluates if it is necessary to use a fan
+     * @param env is the actual Environment
+     * @param next gives the next EntityID
+     * @return returns the new DeltaRequest
+     */
+    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
+            const communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength)
+                        -> const communication::messages::request::DeltaRequest;
+
+    /**
+     * evaluates, if it is useful to use a Niffler as a Fan
+     * @param mySide is the Teamside from the AI
+     * @param env ist the current Environment
+     * @return true, if it is useful, to use a Niffler, otherwise false
+     */
+    bool isNifflerUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env);
+
+    /**
+     * evaluates, if it is useful to use an Elf as a Fan
+     * @param mySide  is the Teamside from the AI
+     * @param env is the current Environment
+     * @param excessLength from the Snitch is needed, to act to the special behavior  from the Snitch
+     * @return returns an EntityID from the Target, which should be teleported
+     */
+    auto getElfTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
+                      const gameController::ExcessLength &excessLength) -> const std::optional<communication::messages::types::EntityId>;
+
+    /**
+    * evaluates, if it is useful to use a Troll as a Fan
+    * @param mySide is the Teamside from the AI
+    * @param env ist the current Environment
+    * @return true, if it is useful, to use a Troll, otherwise false
+    */
+    bool isTrollUseful(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env);
+
+    /**
+    * evaluates, if it is useful to use a Goblin as a Fan
+    * @param mySide is the Teamside from the AI
+    * @param env ist the current Environment
+    * @return returns an EntityID from the Target, which be attacked by the Range-Attack
+    */
+    auto getGoblinTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env) -> const std::optional<communication::messages::types::EntityId>;
 }
 
 #endif //KI_AI_H
