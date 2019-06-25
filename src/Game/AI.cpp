@@ -449,49 +449,50 @@ namespace ai{
 
     auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
                         communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength) -> const communication::messages::request::DeltaRequest {
-        communication::messages::types::EntityId activeEntityId = next.getEntityId();
-        std::optional<communication::messages::types::EntityId> passiveEntityId;
-        if (activeEntityId == communication::messages::types::EntityId::LEFT_NIFFLER ||
-            activeEntityId == communication::messages::types::EntityId::RIGHT_NIFFLER) {
+        using namespace communication::messages;
+        auto activeEntityId = next.getEntityId();
+        std::optional<types::EntityId> passiveEntityId;
+        if (activeEntityId == types::EntityId::LEFT_NIFFLER ||
+            activeEntityId == types::EntityId::RIGHT_NIFFLER) {
             if(isNifflerUseful(mySide, env)){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                return request::DeltaRequest{types::DeltaType::SNITCH_SNATCH, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }
-        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_ELF ||
-                 activeEntityId == communication::messages::types::EntityId::RIGHT_ELF){
+        }else if(activeEntityId == types::EntityId::LEFT_ELF ||
+                 activeEntityId == types::EntityId::RIGHT_ELF){
             passiveEntityId = getElfTarget(mySide, env, excessLength);
             if(passiveEntityId.has_value()){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::ELF_TELEPORTATION, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                return request::DeltaRequest{types::DeltaType::ELF_TELEPORTATION, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }
-        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_TROLL ||
-                 activeEntityId == communication::messages::types::EntityId::RIGHT_TROLL){
+        }else if(activeEntityId == types::EntityId::LEFT_TROLL ||
+                 activeEntityId == types::EntityId::RIGHT_TROLL){
             if(isTrollUseful(mySide, env)){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::TROLL_ROAR, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                return request::DeltaRequest{types::DeltaType::TROLL_ROAR, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }
-        }else if(activeEntityId == communication::messages::types::EntityId::LEFT_GOBLIN ||
-                 activeEntityId == communication::messages::types::EntityId::RIGHT_GOBLIN){
+        }else if(activeEntityId == types::EntityId::LEFT_GOBLIN ||
+                 activeEntityId == types::EntityId::RIGHT_GOBLIN){
             passiveEntityId = getGoblinTarget(mySide, env);
             if(passiveEntityId.has_value()){
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::GOBLIN_SHOCK, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                return request::DeltaRequest{types::DeltaType::GOBLIN_SHOCK, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, std::nullopt, passiveEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }else{
-                return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                      std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                             std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
             }
         }else{
-            return communication::messages::request::DeltaRequest{communication::messages::types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
-                                                                  std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt,
+                                         std::nullopt, activeEntityId, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
         }
     }
 
@@ -513,8 +514,8 @@ namespace ai{
         return false;
     }
 
-    auto getGoblinTarget(const gameModel::TeamSide &mySide,
-                        const std::shared_ptr<const gameModel::Environment> &env) -> const std::optional<communication::messages::types::EntityId> {
+    auto getGoblinTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env)->
+        const std::optional<communication::messages::types::EntityId> {
         auto opponentGoals = env->getGoalsRight();
         if(mySide == gameModel::TeamSide::RIGHT) {
             opponentGoals = env->getGoalsLeft();
