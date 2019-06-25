@@ -8,10 +8,9 @@
 #include <SopraGameLogic/GameController.h>
 #include <SopraGameLogic/conversions.h>
 
-constexpr int distanceSnitchSeeker = 2;
-
 namespace ai{
     constexpr auto minShotSuccessProb = 0.2;
+    constexpr int distanceSnitchSeeker = 2;
 
     double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound) {
         constexpr auto disqPenalty = 2000;
