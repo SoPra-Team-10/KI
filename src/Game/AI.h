@@ -132,7 +132,8 @@ namespace ai {
      * @param next gives the next EntityID
      * @return returns the new DeltaRequest
      */
-    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env, communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength)
+    auto getNextFanTurn(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env,
+            const communication::messages::broadcast::Next &next, const gameController::ExcessLength &excessLength)
                         -> const communication::messages::request::DeltaRequest;
 
     /**

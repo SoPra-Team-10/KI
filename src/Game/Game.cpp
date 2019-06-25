@@ -11,6 +11,8 @@
 #include <SopraGameLogic/conversions.h>
 #include <SopraGameLogic/GameController.h>
 
+constexpr unsigned int OVERTIME_INTERVAL = 3;
+
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
     difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
     usedPlayersOpponent.reserve(7);
@@ -99,6 +101,29 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         currentEnv.value()->snitch = snitch;
         currentEnv.value()->pileOfShit = pileOfShit;
     }
+
+    switch (overTimeState){
+        case gameController::ExcessLength::None:
+            if(currentRound == (*currentEnv)->config.maxRounds){
+                overTimeState = gameController::ExcessLength::Stage1;
+            }
+
+            break;
+        case gameController::ExcessLength::Stage1:
+            if(++overTimeCounter > OVERTIME_INTERVAL){
+                overTimeState = gameController::ExcessLength::Stage2;
+                overTimeCounter = 0;
+            }
+            break;
+        case gameController::ExcessLength::Stage2:
+            if((*currentEnv)->snitch->position == gameModel::Position{8, 6} &&
+               ++overTimeCounter > OVERTIME_INTERVAL){
+                overTimeState = gameController::ExcessLength::Stage3;
+            }
+            break;
+        case gameController::ExcessLength::Stage3:
+            break;
+    }
 }
 
 auto Game::getNextAction(const communication::messages::broadcast::Next &next)
@@ -131,12 +156,9 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
             }
         }
         case communication::messages::types::TurnType::FAN:
-
-            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, next.getEntityId(),
-                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            return ai::getNextFanTurn(mySide, *currentEnv, next, overTimeState);
         case communication::messages::types::TurnType::REMOVE_BAN:
-            return request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, next.getEntityId(),
-                                         std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+            return ai::redeployPlayer(*currentEnv, next.getEntityId());
         default:
             throw std::runtime_error("Enum out of bounds");
     }

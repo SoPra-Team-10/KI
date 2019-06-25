@@ -14,6 +14,7 @@
 #include <SopraMessages/Next.hpp>
 #include <SopraMessages/DeltaRequest.hpp>
 #include <SopraGameLogic/GameModel.h>
+#include <SopraGameLogic/GameController.h>
 
 
 class Game {
@@ -43,7 +44,7 @@ public:
 private:
     static constexpr int FIELD_WIDTH = 16;
     int difficulty;
-    int currentRound = 1;
+    unsigned int currentRound = 1;
     communication::messages::types::PhaseType currentPhase = communication::messages::types::PhaseType::BALL_PHASE;
     bool goalScoredThisRound = false;
     std::optional<std::shared_ptr<gameModel::Environment>> currentEnv = std::nullopt;
@@ -53,6 +54,8 @@ private:
     communication::messages::broadcast::MatchConfig matchConfig = {};
     std::vector<communication::messages::types::EntityId> usedPlayersOwn = {};
     std::vector<communication::messages::types::EntityId> usedPlayersOpponent = {};
+    gameController::ExcessLength overTimeState = gameController::ExcessLength::None;
+    unsigned overTimeCounter = 0;
 
 
     /**
