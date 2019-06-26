@@ -62,12 +62,6 @@ private:
      */
     auto teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
         std::shared_ptr<gameModel::Team>;
-
-    /**
-     * Mirrors the given position in place on the x-axis
-     * @param pos
-     */
-    void mirrorPos(gameModel::Position &pos) const;
 };
 
 
