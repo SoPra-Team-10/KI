@@ -114,14 +114,14 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
 
             break;
         case gameController::ExcessLength::Stage1:
-            if(++overTimeCounter > OVERTIME_INTERVAL){
+            if(++currentState.overTimeCounter > OVERTIME_INTERVAL){
                 currentState.overtimeState = gameController::ExcessLength::Stage2;
-                overTimeCounter = 0;
+                currentState.overTimeCounter = 0;
             }
             break;
         case gameController::ExcessLength::Stage2:
             if(currentState.env->snitch->position == gameModel::Position{8, 6} &&
-               ++overTimeCounter > OVERTIME_INTERVAL){
+               ++currentState.overTimeCounter > OVERTIME_INTERVAL){
                 currentState.overtimeState = gameController::ExcessLength::Stage3;
             }
             break;

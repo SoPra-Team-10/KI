@@ -52,7 +52,6 @@ private:
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
-    unsigned overTimeCounter = 0;
 
 
     /**
