@@ -142,7 +142,7 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
     }
 
     auto evalFunction = [this](const aiTools::State &state){
-        return ai::evalState(state, mySide);
+        return ai::evalState(state.env, mySide, state.goalScoredThisRound);
     };
 
     switch (next.getTurnType()){

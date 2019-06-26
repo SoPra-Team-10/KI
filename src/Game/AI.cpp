@@ -9,7 +9,7 @@
 #include <SopraAITools/AITools.h>
 
 namespace ai{
-    double evalState(const aiTools::State &state, gameModel::TeamSide mySide) {
+    double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound) {
         constexpr auto disqPenalty = 2000;
         constexpr auto unbanDiscountFactor = 150;
         constexpr auto maxBanCount = 3;
@@ -18,7 +18,7 @@ namespace ai{
         constexpr auto scoreDiffDiscountFactor = 15;
 
         double val = 0;
-        auto localEnv = state.env->clone();
+        auto localEnv = env->clone();
         auto valTeam1 = evalTeam(localEnv->getTeam(gameModel::TeamSide::LEFT), localEnv);
         auto valTeam2 = evalTeam(localEnv->getTeam(gameModel::TeamSide::RIGHT), localEnv);
         auto valBludgers = evalBludgers(localEnv, mySide);
@@ -31,13 +31,13 @@ namespace ai{
 
         if(bannedTeam1 >= maxBanCount) {
             val -= disqPenalty;
-        } else if(state.goalScoredThisRound) {
+        } else if(goalScoredThisRound) {
             val += bannedTeam1 * unbanDiscountFactor;
         }
 
         if(bannedTeam2 >= maxBanCount) {
             val += disqPenalty;
-        } else if(state.goalScoredThisRound) {
+        } else if(goalScoredThisRound) {
             val -= bannedTeam2 * unbanDiscountFactor;
         }
 

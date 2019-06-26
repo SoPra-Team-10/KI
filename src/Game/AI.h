@@ -18,7 +18,7 @@ namespace ai {
      * @param goalScoredThisRound Wheather or not a goal was scored this round
      * @return A number indicating how favorable the current situation is. The higher the number the better
      */
-    double evalState(const aiTools::State &state, gameModel::TeamSide mySide);
+    double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound);
 
     /**
      * Evaluates the positioning of players in a single team
