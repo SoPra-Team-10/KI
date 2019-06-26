@@ -19,8 +19,8 @@ namespace ai{
         constexpr auto maxBanCount = 3;
         constexpr auto farBehindPenalty = 3000;
         constexpr auto leadBonus = 1000;
-        constexpr auto scoreDiffFarBehindDiscountFactor = 200;
-        constexpr auto scoreDiffDiscountFactor = 150;
+        constexpr auto scoreDiffFarBehindDiscountFactor = 300;
+        constexpr auto scoreDiffDiscountFactor = 200;
         constexpr auto scoreDiffInLeadDiscountFactor = 100;
 
         double val = 0;
@@ -213,6 +213,9 @@ namespace ai{
         constexpr auto goalPotentialChanceDiscountFactorBehind = 500;
         constexpr auto goalPotentialChanceDiscountFactorInLead = 100;
         constexpr auto goalPotentialChanceDiscountFactorEven = 200;
+        constexpr auto goalVirtualChanceDiscountFactorBehind = 200;
+        constexpr auto goalVirtualChanceDiscountFactorInLead = 0;
+        constexpr auto goalVirtualChanceDiscountFactorEven = 100;
         constexpr auto baseVal = 100;
 
         double val = 0;
@@ -254,17 +257,24 @@ namespace ai{
                 }
             } else {
                 val += baseQuaffleDistanceDiscount / gameController::getDistance(chaser->position, env->quaffle->position);
+                if(scoreDiff < -gameController::SNITCH_POINTS) {
+                    val += getHighestGoalRate(env, chaser) * goalVirtualChanceDiscountFactorBehind;
+                } else if(scoreDiff > gameController::SNITCH_POINTS) {
+                    val += getHighestGoalRate(env, chaser) * goalVirtualChanceDiscountFactorInLead;
+                } else {
+                    val += getHighestGoalRate(env, chaser) * goalVirtualChanceDiscountFactorEven;
+                }
             }
         }
         return val;
     }
 
     double evalBludgers(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide) {
-        constexpr auto keeperBaseThreat = 10.0;
-        constexpr auto seekerBaseThreat = 20.0;
-        constexpr auto chaserBaseThreat = 10.0;
-        constexpr auto beaterBaseThreat = 40.0;
-        constexpr auto beaterHoldsBludgerDiscount = 50;
+        constexpr auto keeperBaseThreat = 15.0;
+        constexpr auto seekerBaseThreat = 25.0;
+        constexpr auto chaserBaseThreat = 15.0;
+        constexpr auto beaterBaseThreat = 30.0;
+        constexpr auto beaterHoldsBludgerDiscount = 40;
 
         auto calcThreat = [&env, &mySide](const std::shared_ptr<const gameModel::Team> &team){
             double val = 0;
