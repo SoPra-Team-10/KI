@@ -15,6 +15,7 @@
 #include <SopraMessages/DeltaRequest.hpp>
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/GameController.h>
+#include <SopraAITools/AITools.h>
 #include <unordered_set>
 
 
@@ -45,17 +46,12 @@ public:
 private:
     static constexpr int FIELD_WIDTH = 16;
     int difficulty;
-    unsigned int currentRound = 1;
-    communication::messages::types::PhaseType currentPhase = communication::messages::types::PhaseType::BALL_PHASE;
-    bool goalScoredThisRound = false;
-    std::optional<std::shared_ptr<gameModel::Environment>> currentEnv = std::nullopt;
+    bool gotFirstSnapshot = false;
+    aiTools::State currentState;
     gameModel::TeamSide mySide;
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
-    std::unordered_set<communication::messages::types::EntityId> usedPlayersOwn = {};
-    std::unordered_set<communication::messages::types::EntityId> usedPlayersOpponent = {};
-    gameController::ExcessLength overTimeState = gameController::ExcessLength::None;
     unsigned overTimeCounter = 0;
 
 

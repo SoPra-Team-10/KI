@@ -15,8 +15,10 @@ constexpr unsigned int OVERTIME_INTERVAL = 3;
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
     difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
-    usedPlayersOpponent.reserve(7);
-    usedPlayersOwn.reserve(7);
+    currentState.availableFansRight = {};
+    currentState.availableFansLeft = {};
+    currentState.playersUsedRight = {};
+    currentState.playersUsedLeft = {};
 }
 
 auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart &matchStart)
@@ -51,23 +53,23 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
 
 void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapshot) {
     using namespace communication::messages::types;
-    currentRound = snapshot.getRound();
-    currentPhase = snapshot.getPhase();
-    goalScoredThisRound = snapshot.isGoalWasThrownThisRound();
+    currentState.roundNumber = snapshot.getRound();
+    currentState.currentPhase = snapshot.getPhase();
+    currentState.goalScoredThisRound = snapshot.isGoalWasThrownThisRound();
     auto lastDelta = snapshot.getLastDeltaBroadcast();
     if(lastDelta.getDeltaType() == DeltaType::TURN_USED){
         if(!lastDelta.getActiveEntity().has_value()){
             throw std::runtime_error("Active entity id not set!");
         }
 
-        if(gameLogic::conversions::idToSide(*lastDelta.getActiveEntity()) == mySide) {
-            usedPlayersOwn.emplace(*lastDelta.getActiveEntity());
+        if(gameLogic::conversions::idToSide(*lastDelta.getActiveEntity()) == gameModel::TeamSide::LEFT) {
+            currentState.playersUsedLeft.emplace(*lastDelta.getActiveEntity());
         } else {
-            usedPlayersOpponent.emplace(*lastDelta.getActiveEntity());
+            currentState.playersUsedRight.emplace(*lastDelta.getActiveEntity());
         }
     } else if(lastDelta.getDeltaType() == DeltaType::ROUND_CHANGE) {
-        usedPlayersOpponent.clear();
-        usedPlayersOwn.clear();
+        currentState.playersUsedRight.clear();
+        currentState.playersUsedLeft.clear();
     }
 
     auto quaf = std::make_shared<gameModel::Quaffle>(gameModel::Position{snapshot.getQuaffleX(), snapshot.getQuaffleY()});
@@ -91,34 +93,36 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
     auto team1 = teamFromSnapshot(snapshot.getLeftTeam(), gameModel::TeamSide::LEFT);
     auto team2 = teamFromSnapshot(snapshot.getRightTeam(), gameModel::TeamSide::RIGHT);
 
-    if(!currentEnv.has_value()){
-        currentEnv = std::make_shared<gameModel::Environment>(gameModel::Config{matchConfig}, team1, team2);
+    if(!gotFirstSnapshot){
+        gotFirstSnapshot = true;
+        currentState.env = std::make_shared<gameModel::Environment>(gameModel::Config{matchConfig}, team1, team2);
+        currentState.overTimeCounter = 0;
     } else {
-        currentEnv.value()->team1 = team1;
-        currentEnv.value()->team2 = team2;
-        currentEnv.value()->quaffle = quaf;
-        currentEnv.value()->bludgers = bludgers;
-        currentEnv.value()->snitch = snitch;
-        currentEnv.value()->pileOfShit = pileOfShit;
+        currentState.env->team1 = team1;
+        currentState.env->team2 = team2;
+        currentState.env->quaffle = quaf;
+        currentState.env->bludgers = bludgers;
+        currentState.env->snitch = snitch;
+        currentState.env->pileOfShit = pileOfShit;
     }
 
-    switch (overTimeState){
+    switch (currentState.overtimeState){
         case gameController::ExcessLength::None:
-            if(currentRound == (*currentEnv)->config.maxRounds){
-                overTimeState = gameController::ExcessLength::Stage1;
+            if(currentState.roundNumber == currentState.env->config.maxRounds){
+                currentState.overtimeState = gameController::ExcessLength::Stage1;
             }
 
             break;
         case gameController::ExcessLength::Stage1:
             if(++overTimeCounter > OVERTIME_INTERVAL){
-                overTimeState = gameController::ExcessLength::Stage2;
+                currentState.overtimeState = gameController::ExcessLength::Stage2;
                 overTimeCounter = 0;
             }
             break;
         case gameController::ExcessLength::Stage2:
-            if((*currentEnv)->snitch->position == gameModel::Position{8, 6} &&
+            if(currentState.env->snitch->position == gameModel::Position{8, 6} &&
                ++overTimeCounter > OVERTIME_INTERVAL){
-                overTimeState = gameController::ExcessLength::Stage3;
+                currentState.overtimeState = gameController::ExcessLength::Stage3;
             }
             break;
         case gameController::ExcessLength::Stage3:
@@ -129,7 +133,7 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
 auto Game::getNextAction(const communication::messages::broadcast::Next &next)
     -> std::optional<communication::messages::request::DeltaRequest> {
     using namespace communication::messages;
-    if(!currentEnv.has_value()){
+    if(!gotFirstSnapshot){
         throw std::runtime_error("Local environment not set!");
     }
 
@@ -137,28 +141,31 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
         return std::nullopt;
     }
 
+    auto evalFunction = [this](const aiTools::State &state){
+        return ai::evalState(state, mySide);
+    };
+
     switch (next.getTurnType()){
         case communication::messages::types::TurnType::MOVE:
-            return ai::computeBestMove(*currentEnv, next.getEntityId(), goalScoredThisRound);
+            return aiTools::computeBestMove(currentState, evalFunction, next.getEntityId());
         case communication::messages::types::TurnType::ACTION:{
-            auto type = gameController::getPossibleBallActionType(
-                    (*currentEnv)->getPlayerById(next.getEntityId()), *currentEnv);
+            auto type = gameController::getPossibleBallActionType(currentState.env->getPlayerById(next.getEntityId()), currentState.env);
             if(!type.has_value()){
                 throw std::runtime_error("No action possible");
             }
 
             if(*type == gameController::ActionType::Throw) {
-                return ai::computeBestShot(*currentEnv, next.getEntityId(), goalScoredThisRound);
+                return aiTools::computeBestShot(currentState, evalFunction, next.getEntityId());
             } else if(*type == gameController::ActionType::Wrest) {
-                return ai::computeBestWrest(*currentEnv, next.getEntityId(), goalScoredThisRound);
+                return aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
             } else {
                 throw std::runtime_error("Unexpected action type");
             }
         }
         case communication::messages::types::TurnType::FAN:
-            return ai::getNextFanTurn(mySide, *currentEnv, next, overTimeState);
+            return aiTools::getNextFanTurn(currentState, next);
         case communication::messages::types::TurnType::REMOVE_BAN:
-            return ai::redeployPlayer(*currentEnv, next.getEntityId());
+            return aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId());
         default:
             throw std::runtime_error("Enum out of bounds");
     }
