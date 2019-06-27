@@ -32,12 +32,14 @@ namespace communication {
          * @param server the server to use for the WebSocketClient
          * @param port the port to use for the WebSocketClient
          * @param log a log object for logging
+         * @param mlpFName the path to the json file with the State-Estimator-MLP
          * @see Game, MessageHandler
          */
         Communicator(const std::string &lobbyName, const std::string &userName,
                 const std::string &password, unsigned int difficulty,
                 const messages::request::TeamConfig &teamConfig,
-                const std::string &server, uint16_t port, util::Logging &log);
+                const std::string &server, uint16_t port, util::Logging &log,
+                const std::string &mlpFName);
 
     private:
         void onMessageReceive(const messages::Message& message);

@@ -10,11 +10,14 @@
 #include <utility>
 #include <SopraGameLogic/conversions.h>
 #include <SopraGameLogic/GameController.h>
+#include <Mlp/Util.h>
 
 constexpr unsigned int OVERTIME_INTERVAL = 3;
 
-Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
-    difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
+Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig,
+        const std::string &mlpFname) :
+        difficulty(difficulty), myConfig(std::move(ownTeamConfig)),
+        stateEstimator{ml::util::loadFromFile<aiTools::State::FEATURE_VEC_LEN, 200, 200, 1>(mlpFname)} {
     currentState.availableFansRight = {};
     currentState.availableFansLeft = {};
     currentState.playersUsedRight = {};
@@ -126,7 +129,7 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
     }
 
     auto evalFunction = [this](const aiTools::State &state){
-        return ai::evalState(state.env, mySide, state.goalScoredThisRound);
+        return stateEstimator.forward(state.getFeatureVec(this->mySide))[0];
     };
 
     switch (next.getTurnType()){

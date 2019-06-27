@@ -8,6 +8,8 @@
 #ifndef KI_GAME_HPP
 #define KI_GAME_HPP
 
+#include <unordered_set>
+
 #include <SopraMessages/TeamFormation.hpp>
 #include <SopraMessages/MatchStart.hpp>
 #include <SopraMessages/Snapshot.hpp>
@@ -16,12 +18,12 @@
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/GameController.h>
 #include <SopraAITools/AITools.h>
-#include <unordered_set>
-
+#include <Mlp/Mlp.hpp>
 
 class Game {
 public:
-    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig);
+    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig,
+            const std::string &mlpFName);
 
     /**
      * Gets the TeamFormation for the match
@@ -52,6 +54,8 @@ private:
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
+
+    ml::Mlp<aiTools::State::FEATURE_VEC_LEN, 200, 200, 1> stateEstimator;
 
 
     /**

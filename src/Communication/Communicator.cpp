@@ -11,8 +11,9 @@ namespace communication {
     Communicator::Communicator(const std::string &lobbyName, const std::string &userName,
                                 const std::string &password,
                                 unsigned int difficulty, const messages::request::TeamConfig &teamConfig,
-                                const std::string &server, uint16_t port, util::Logging &log)
-            : messageHandler{server, port, log}, game{difficulty, teamConfig}, log{log} {
+                                const std::string &server, uint16_t port, util::Logging &log,
+                                const std::string &mlpFName)
+            : messageHandler{server, port, log}, game{difficulty, teamConfig, mlpFName}, log{log} {
         messageHandler.receiveListener(
                 std::bind(&Communicator::onMessageReceive, this, std::placeholders::_1));
 

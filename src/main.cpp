@@ -52,7 +52,8 @@ int main(int argc, char *argv[]) {
 
     util::Logging log{std::cout, verbosity};
     communication::Communicator communicator{
-        lobbyName, uName, pw, difficulty, teamConfig, address, port, log};
+        lobbyName, uName, pw, difficulty, teamConfig, address, port, log,
+        "../KI-Training/trainingFiles/left_epoch0.json"};
 
     log.info("Started");
 
