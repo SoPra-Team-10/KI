@@ -49,6 +49,7 @@ of docker.
  * [SopraMessages](https://github.com/SoPra-Team-10/Messages)
  * [SopraUtil](https://github.com/SoPra-Team-10/Util)
  * [SopraAITools](https://github.com/SoPra-Team-10/AITools)
+ * [MLP](https://github.com/aul12/MLP)
  * Either a POSIX-Compliant OS or Cygwin (to use pthreads)
  * Optional: Google Tests and Google Mock for Unit-Tests
 
@@ -85,7 +86,7 @@ you can now run the ki by executing the created `KI` file:
  * [SopraMessages](https://github.com/SoPra-Team-10/Messages)
  * [SopraUtil](https://github.com/SoPra-Team-10/Util)
  * [SopraAITools](https://github.com/SoPra-Team-10/AITools)
- * [nlohmann::json](https://github.com/nlohmann/json)
+ * [MLP](https://github.com/aul12/MLP)
 
 ## Doxygen Dokumentation
 - [Master Branch](https://sopra-team-10.github.io/KI/master/html/index.html)

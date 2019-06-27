@@ -51,6 +51,12 @@ RUN git clone https://github.com/SoPra-Team-10/AITools.git
 WORKDIR /AITools
 RUN cmake . && make -j$(nproc) SopraAITools && make install
 
+# Compile MLP
+WORKDIR /
+RUN git clone https://github.com/aul12/MLP.git
+WORKDIR /MLP
+RUN cmake . && make -j$(nproc) Mlp && make install
+
 RUN ldconfig
 
 RUN mkdir /src
