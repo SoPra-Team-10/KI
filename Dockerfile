@@ -45,6 +45,12 @@ RUN git clone https://github.com/SoPra-Team-10/Util.git
 WORKDIR /Util
 RUN cmake . && make -j$(nproc) SopraUtil && make install
 
+# Compile AITools
+WORKDIR /
+RUN git clone https://github.com/SoPra-Team-10/AITools.git
+WORKDIR /AITools
+RUN cmake . && make -j$(nproc) SopraAITools && make install
+
 RUN ldconfig
 
 RUN mkdir /src
