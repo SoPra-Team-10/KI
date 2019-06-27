@@ -283,7 +283,7 @@ namespace ai{
     double getHighestGoalRate(const std::shared_ptr<gameModel::Environment> &env,
             const std::shared_ptr<gameModel::Player> &actor) {
         double chance = 0;
-        auto goalPos = env->getGoalsRight();
+        auto goalPos = gameModel::Environment::getGoalsRight();
 
         if (env->getTeam(actor)->side == gameModel::TeamSide::LEFT) {
             goalPos = env->getGoalsLeft();
@@ -516,7 +516,7 @@ namespace ai{
 
     auto getGoblinTarget(const gameModel::TeamSide &mySide, const std::shared_ptr<const gameModel::Environment> &env)->
         const std::optional<communication::messages::types::EntityId> {
-        auto opponentGoals = env->getGoalsRight();
+        auto opponentGoals = gameModel::Environment::getGoalsRight();
         if(mySide == gameModel::TeamSide::RIGHT) {
             opponentGoals = env->getGoalsLeft();
         }

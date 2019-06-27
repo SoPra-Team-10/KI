@@ -13,7 +13,7 @@
 
 constexpr unsigned int OVERTIME_INTERVAL = 3;
 
-Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
+Game::Game(unsigned int difficulty, const communication::messages::request::TeamConfig &ownTeamConfig) :
     difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
     usedPlayersOpponent.reserve(7);
     usedPlayersOwn.reserve(7);
@@ -91,7 +91,7 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
     auto team1 = teamFromSnapshot(snapshot.getLeftTeam(), gameModel::TeamSide::LEFT);
     auto team2 = teamFromSnapshot(snapshot.getRightTeam(), gameModel::TeamSide::RIGHT);
 
-    if(!currentEnv.has_value()){
+    if(!currentEnv.has_value()) {
         currentEnv = std::make_shared<gameModel::Environment>(gameModel::Config{matchConfig}, team1, team2);
     } else {
         currentEnv.value()->team1 = team1;
@@ -102,27 +102,28 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         currentEnv.value()->pileOfShit = pileOfShit;
     }
 
-    switch (overTimeState){
+    switch (overTimeState) {
         case gameController::ExcessLength::None:
-            if(currentRound == (*currentEnv)->config.maxRounds){
+            if (currentRound == (*currentEnv)->config.maxRounds) {
                 overTimeState = gameController::ExcessLength::Stage1;
             }
 
             break;
         case gameController::ExcessLength::Stage1:
-            if(++overTimeCounter > OVERTIME_INTERVAL){
+            if (++overTimeCounter > OVERTIME_INTERVAL) {
                 overTimeState = gameController::ExcessLength::Stage2;
                 overTimeCounter = 0;
             }
             break;
         case gameController::ExcessLength::Stage2:
-            if((*currentEnv)->snitch->position == gameModel::Position{8, 6} &&
-               ++overTimeCounter > OVERTIME_INTERVAL){
+            if ((*currentEnv)->snitch->position == gameModel::Position{8, 6} &&
+                    (++overTimeCounter) > OVERTIME_INTERVAL) {
                 overTimeState = gameController::ExcessLength::Stage3;
             }
             break;
         case gameController::ExcessLength::Stage3:
             break;
+
     }
 }
 
