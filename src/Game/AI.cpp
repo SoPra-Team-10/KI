@@ -9,8 +9,6 @@
 #include <SopraAITools/AITools.h>
 
 namespace ai{
-    constexpr auto minShotSuccessProb = 0.2;
-    constexpr int distanceSnitchSeeker = 2;
 
     double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide,
                      bool goalScoredThisRound) {
@@ -335,6 +333,15 @@ namespace ai{
         }
 
         return chance;
+    }
+
+    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<const gameModel::Player> &player) {
+        auto playerOnQuaffle = env->getPlayer(env->quaffle->position);
+        if(playerOnQuaffle.has_value()){
+            return env->getTeam(player)->hasMember(*playerOnQuaffle);
+        }
+
+        return false;
     }
 
 }

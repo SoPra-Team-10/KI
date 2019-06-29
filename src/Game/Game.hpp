@@ -17,12 +17,11 @@
 #include <SopraGameLogic/GameController.h>
 #include <SopraAITools/AITools.h>
 #include <unordered_set>
-#include <SopraUtil/Logging.hpp>
 
 
 class Game {
 public:
-    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging &log);
+    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig);
 
     /**
      * Gets the TeamFormation for the match

@@ -74,6 +74,8 @@ namespace ai {
     double getHighestGoalRate(const std::shared_ptr<gameModel::Environment> &env,
             const std::shared_ptr<gameModel::Player> &actor);
 
+    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<const gameModel::Player> &player);
+
 }
 
 #endif //KI_AI_H
