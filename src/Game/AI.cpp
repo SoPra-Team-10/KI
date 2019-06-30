@@ -78,7 +78,7 @@ namespace ai{
         constexpr auto gameLosePenalty = 2000;
         constexpr auto baseSnitchdistanceDiscount = 200.0;
         constexpr auto winSnitchDistanceDiscount = 1000.0;
-        constexpr auto nearCenterDiscount = 30.0;
+        constexpr auto nearCenterDiscount = 15.0;
         constexpr auto baseVal = 200;
 
         constexpr auto centerX = 8;
@@ -86,13 +86,10 @@ namespace ai{
 
         double val = 0;
 
-        if(seeker->isFined) {
+        if(seeker->isFined || seeker->knockedOut) {
             return val;
         } else {
             val += baseVal;
-        }
-        if(seeker->knockedOut) {
-            return val;
         }
 
         int scoreDiff = 0;
@@ -149,13 +146,10 @@ namespace ai{
             scoreDiff = env->team2->score - env->team1->score;
         }
 
-        if (keeper->isFined) {
+        if (keeper->isFined || keeper->knockedOut) {
             return val;
         } else{
             val += baseVal;
-        }
-        if(keeper->knockedOut) {
-            return val;
         }
 
         //If keeper has quaffle
@@ -220,13 +214,10 @@ namespace ai{
         double val = 0;
         int scoreDiff = 0;
 
-        if (chaser->isFined) {
+        if (chaser->isFined || chaser->knockedOut) {
             return val;
         } else {
             val += baseVal;
-        }
-        if(chaser->knockedOut) {
-            return val;
         }
 
         if(env->team1->hasMember(chaser)){
@@ -269,28 +260,28 @@ namespace ai{
     }
 
     double evalBludgers(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide) {
-        constexpr auto keeperBaseThreat = 15.0;
-        constexpr auto seekerBaseThreat = 25.0;
-        constexpr auto chaserBaseThreat = 15.0;
-        constexpr auto beaterBaseThreat = 30.0;
-        constexpr auto beaterHoldsBludgerDiscount = 40;
+        constexpr auto keeperBaseThreat = 200.0;
+        constexpr auto seekerBaseThreat = 250.0;
+        constexpr auto chaserBaseThreat = 200.0;
+        constexpr auto beaterBaseThreat = 120.0;
+        constexpr auto beaterHoldsBludgerDiscount = 140;
 
         auto calcThreat = [&env, &mySide](const std::shared_ptr<const gameModel::Team> &team){
             double val = 0;
             for(const auto &bludger : env->bludgers){
                 const auto &bPos = bludger->position;
                 //eval team1
-                if (!team->keeper->isFined && team->keeper->position != bludger->position) {
-                    val -= keeperBaseThreat / gameController::getDistance(bPos, env->team1->keeper->position);
+                if (!team->keeper->isFined && gameController::getDistance(team->keeper->position, bPos) == 1) {
+                    val -= keeperBaseThreat;
                 }
 
-                if (!team->seeker->isFined && team->seeker->position != bPos) {
-                    val -= seekerBaseThreat / gameController::getDistance(bPos, env->team1->seeker->position);
+                if (!team->seeker->isFined && gameController::getDistance(team->seeker->position, bPos) == 1 && env->snitch->exists) {
+                    val -= seekerBaseThreat;
                 }
 
                 for (const auto &chaser : team->chasers) {
-                    if (!chaser->isFined && chaser->position != bPos) {
-                        val -= chaserBaseThreat / gameController::getDistance(bPos, chaser->position);
+                    if (!chaser->isFined && gameController::getDistance(bPos, chaser->position) == 1) {
+                        val -= chaserBaseThreat;
                     }
                 }
 
