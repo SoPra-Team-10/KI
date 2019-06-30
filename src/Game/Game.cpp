@@ -13,7 +13,7 @@
 
 constexpr unsigned int OVERTIME_INTERVAL = 3;
 
-Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
+Game::Game(unsigned int difficulty, const communication::messages::request::TeamConfig &ownTeamConfig) :
     difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
     currentState.availableFansRight = {};
     currentState.availableFansLeft = {};
@@ -90,27 +90,28 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         currentState.env->pileOfShit = pileOfShit;
     }
 
-    switch (currentState.overtimeState){
+    switch (currentState.overtimeState) {
         case gameController::ExcessLength::None:
-            if(currentState.roundNumber == currentState.env->config.maxRounds){
+            if (currentState.roundNumber == currentState.env->config.maxRounds) {
                 currentState.overtimeState = gameController::ExcessLength::Stage1;
             }
 
             break;
         case gameController::ExcessLength::Stage1:
-            if(++currentState.overTimeCounter > OVERTIME_INTERVAL){
+            if (++currentState.overTimeCounter > OVERTIME_INTERVAL) {
                 currentState.overtimeState = gameController::ExcessLength::Stage2;
                 currentState.overTimeCounter = 0;
             }
             break;
         case gameController::ExcessLength::Stage2:
-            if(currentState.env->snitch->position == gameModel::Position{8, 6} &&
-               ++currentState.overTimeCounter > OVERTIME_INTERVAL){
+            if (currentState.env->snitch->position == gameModel::Position{8, 6} &&
+               ++currentState.overTimeCounter > OVERTIME_INTERVAL) {
                 currentState.overtimeState = gameController::ExcessLength::Stage3;
             }
             break;
         case gameController::ExcessLength::Stage3:
             break;
+
     }
 }
 
