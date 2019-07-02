@@ -304,7 +304,7 @@ namespace ai{
     double getHighestGoalRate(const std::shared_ptr<gameModel::Environment> &env,
             const std::shared_ptr<gameModel::Player> &actor) {
         double chance = 0;
-        auto goalPos = env->getGoalsRight();
+        auto goalPos = gameModel::Environment::getGoalsRight();
 
         if (env->getTeam(actor)->side == gameModel::TeamSide::LEFT) {
             goalPos = env->getGoalsLeft();
@@ -326,6 +326,7 @@ namespace ai{
         return chance;
     }
 
+
     bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<const gameModel::Player> &player) {
         auto playerOnQuaffle = env->getPlayer(env->quaffle->position);
         if(playerOnQuaffle.has_value()){
@@ -336,3 +337,4 @@ namespace ai{
     }
 
 }
+
