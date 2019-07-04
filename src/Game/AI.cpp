@@ -102,7 +102,7 @@ namespace ai{
         if(env->snitch->exists){
             if(scoreDiff < -gameController::SNITCH_POINTS){
                 if(seeker->position == env->snitch->position){
-                    val = -gameLosePenalty * env->config.gameDynamicsProbs.catchSnitch;
+                    val = -gameLosePenalty * env->config.getGameDynamicsProbs().catchSnitch;
                 }
                 else{
                     val = baseSnitchdistanceDiscount / gameController::getDistance(seeker->position, env->snitch->position);
@@ -270,7 +270,7 @@ namespace ai{
                 }
             }
 
-            return team->side == mySide ? val : -val;
+            return team->getSide() == mySide ? val : -val;
         };
 
 
@@ -282,7 +282,7 @@ namespace ai{
         double chance = 0;
         auto goalPos = gameModel::Environment::getGoalsRight();
 
-        if (env->getTeam(actor)->side == gameModel::TeamSide::LEFT) {
+        if (env->getTeam(actor)->getSide() == gameModel::TeamSide::LEFT) {
             goalPos = env->getGoalsLeft();
         }
 

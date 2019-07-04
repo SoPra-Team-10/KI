@@ -48,13 +48,34 @@ namespace communication {
     template <>
     void Communicator::onPayloadReceive<messages::broadcast::Next>(const messages::broadcast::Next &next) {
         log.info("Got Next request");
-        auto request = game.getNextAction(next);
-        if(request.has_value()) {
-            log.info("Requesting Action");
+        auto computeNextAsync = [this, &next](){
+            auto request = game.getNextAction(next, timer);
+            if(request.has_value()){
+                log.info("Requesting Action");
+            } else {
+                log.info("Next ignored");
+                return;
+            }
+
+            {
+                std::unique_lock<std::mutex> lock(pauseMutex);
+                cv.wait(lock, [this] { return paused; });
+            }
+
             send(*request);
-        } else {
-            log.info("Next ignored");
+        };
+
+        worker = std::thread(computeNextAsync);
+    }
+
+    template <>
+    void Communicator::onPayloadReceive<messages::broadcast::PauseResponse>(const messages::broadcast::PauseResponse &pauseResponse){
+        {
+            std::lock_guard<std::mutex> lock(pauseMutex);
+            paused = pauseResponse.isPause();
         }
+
+        cv.notify_all();
     }
 
     template <>

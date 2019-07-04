@@ -17,6 +17,8 @@
 #include <SopraGameLogic/GameController.h>
 #include <SopraAITools/AITools.h>
 #include <unordered_set>
+#include <atomic>
+#include <SopraUtil/Timer.h>
 
 
 class Game {
@@ -40,7 +42,7 @@ public:
      * @param next information from the server for the requested turn
      * @return the next action by the AI or nothing if not AIs turn
      */
-    auto getNextAction(const communication::messages::broadcast::Next &next)
+    auto getNextAction(const communication::messages::broadcast::Next &next, util::Timer &timer)
         -> std::optional<communication::messages::request::DeltaRequest>;
 
 private:
