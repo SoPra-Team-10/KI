@@ -17,7 +17,6 @@
 #include <SopraGameLogic/GameController.h>
 #include <SopraAITools/AITools.h>
 #include <unordered_set>
-#include <atomic>
 #include <SopraUtil/Timer.h>
 
 
