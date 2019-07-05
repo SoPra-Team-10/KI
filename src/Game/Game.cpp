@@ -119,16 +119,18 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
 auto Game::getNextAction(const communication::messages::broadcast::Next &next, util::Timer &timer)
     -> std::optional<communication::messages::request::DeltaRequest> {
     using namespace communication::messages;
+    using namespace gameLogic::conversions;
     if(!gotFirstSnapshot){
         throw std::runtime_error("Local environment not set!");
     }
 
-    if(gameLogic::conversions::idToSide(next.getEntityId()) != mySide){
+    if(isBall(next.getEntityId()) || idToSide(next.getEntityId()) != mySide){
         return std::nullopt;
     }
 
+
     bool abort = false;
-    timer.setTimeout([&abort](){abort = true;}, next.getTimout() - TIMEOUT_TOLERANCE);
+    timer.setTimeout([&abort](){ abort = true; }, next.getTimout() - TIMEOUT_TOLERANCE);
     auto evalFunction = [this](const aiTools::State &state){
         return ai::evalState(state.env, mySide, state.goalScoredThisRound);
     };

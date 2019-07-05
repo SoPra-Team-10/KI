@@ -55,6 +55,7 @@ namespace communication {
         std::condition_variable cv;
         std::mutex pauseMutex;
         std::thread worker;
+        bool once = false;
     };
 }
 

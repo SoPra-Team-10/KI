@@ -57,19 +57,26 @@ namespace communication {
                 return;
             }
 
-            {
-                std::unique_lock<std::mutex> lock(pauseMutex);
-                cv.wait(lock, [this] { return paused; });
-            }
+            std::this_thread::sleep_for(std::chrono::milliseconds{200});
+            std::unique_lock<std::mutex> lock(pauseMutex);
+            cv.wait(lock, [this] { return !paused; });
 
+            timer.stop();
             send(*request);
         };
+
+        if(!once){
+            once = true;
+        } else {
+            worker.join();
+        }
 
         worker = std::thread(computeNextAsync);
     }
 
     template <>
     void Communicator::onPayloadReceive<messages::broadcast::PauseResponse>(const messages::broadcast::PauseResponse &pauseResponse){
+        log.info("--- Pause response received ---");
         {
             std::lock_guard<std::mutex> lock(pauseMutex);
             paused = pauseResponse.isPause();
