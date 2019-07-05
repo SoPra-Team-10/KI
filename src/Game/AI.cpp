@@ -7,6 +7,7 @@
 #include <SopraGameLogic/GameController.h>
 #include <SopraGameLogic/conversions.h>
 #include <SopraAITools/AITools.h>
+#include <iostream>
 
 namespace ai{
 
@@ -78,8 +79,8 @@ namespace ai{
         constexpr auto gameLosePenalty = 2000;
         constexpr auto baseSnitchdistanceDiscount = 200.0;
         constexpr auto winSnitchDistanceDiscount = 1000.0;
-        constexpr auto nearCenterDiscount = 15.0;
-        constexpr auto baseVal = 200;
+        constexpr auto nearCenterDiscount = 10.0;
+        constexpr auto baseVal = 500;
 
         constexpr auto centerX = 8;
         constexpr auto centerY = 6;
@@ -102,7 +103,7 @@ namespace ai{
         if(env->snitch->exists){
             if(scoreDiff < -gameController::SNITCH_POINTS){
                 if(seeker->position == env->snitch->position){
-                    val = -gameLosePenalty * env->config.gameDynamicsProbs.catchSnitch;
+                    val = -gameLosePenalty * env->config.getGameDynamicsProbs().catchSnitch;
                 }
                 else{
                     val = baseSnitchdistanceDiscount / gameController::getDistance(seeker->position, env->snitch->position);
@@ -124,17 +125,17 @@ namespace ai{
 
     double
     evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper, const std::shared_ptr<gameModel::Environment> &env) {
-        constexpr auto holdsQuaffleBaseDiscount = 250;
+        constexpr auto holdsQuaffleBaseDiscount = 450;
         constexpr auto keeperBonusEvenWinChance = 20;
         constexpr auto keeperBonusHighWinChance = 500;
         constexpr auto goalChanceDiscountFactorBehind = 1000;
         constexpr auto goalChanceDiscountFactorInLead = 200;
-        constexpr auto goalChanceDiscountFactorEven = 400;
-        constexpr auto baseQuaffleDistanceDiscount = 100.0;
+        constexpr auto goalChanceDiscountFactorEven = 500;
+        constexpr auto baseQuaffleDistanceDiscount = 150.0;
         constexpr auto goalPotentialChanceDiscountFactorBehind = 500;
         constexpr auto goalPotentialChanceDiscountFactorInLead = 100;
         constexpr auto goalPotentialChanceDiscountFactorEven = 200;
-        constexpr auto baseVal = 150;
+        constexpr auto baseVal = 450;
         constexpr auto keeperBonusPotentialEvenWinChance = 10;
         constexpr auto keeperBonusPotentialHighWinChance = 200;
 
@@ -200,16 +201,16 @@ namespace ai{
                       const std::shared_ptr<gameModel::Environment> &env) {
         constexpr auto goalChanceDiscountFactorBehind = 1000;
         constexpr auto goalChanceDiscountFactorInLead = 200;
-        constexpr auto goalChanceDiscountFactorEven = 400;
-        constexpr auto baseQuaffleDistanceDiscount = 100.0;
-        constexpr auto holdsQuaffleBaseDiscount = 250;
+        constexpr auto goalChanceDiscountFactorEven = 600;
+        constexpr auto baseQuaffleDistanceDiscount = 150.0;
+        constexpr auto holdsQuaffleBaseDiscount = 450;
         constexpr auto goalPotentialChanceDiscountFactorBehind = 500;
         constexpr auto goalPotentialChanceDiscountFactorInLead = 100;
         constexpr auto goalPotentialChanceDiscountFactorEven = 200;
         constexpr auto goalVirtualChanceDiscountFactorBehind = 200;
         constexpr auto goalVirtualChanceDiscountFactorInLead = 0;
         constexpr auto goalVirtualChanceDiscountFactorEven = 100;
-        constexpr auto baseVal = 100;
+        constexpr auto baseVal = 300;
 
         double val = 0;
         int scoreDiff = 0;
@@ -260,11 +261,11 @@ namespace ai{
     }
 
     double evalBludgers(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide) {
-        constexpr auto keeperBaseThreat = 200.0;
-        constexpr auto seekerBaseThreat = 250.0;
-        constexpr auto chaserBaseThreat = 200.0;
-        constexpr auto beaterBaseThreat = 120.0;
-        constexpr auto beaterHoldsBludgerDiscount = 140;
+        constexpr auto keeperBaseThreat = 500.0;
+        constexpr auto seekerBaseThreat = 550.0;
+        constexpr auto chaserBaseThreat = 500.0;
+        constexpr auto beaterBaseThreat = 400.0;
+        constexpr auto beaterHoldsBludgerDiscount = 500;
 
         auto calcThreat = [&env, &mySide](const std::shared_ptr<const gameModel::Team> &team){
             double val = 0;
@@ -285,16 +286,24 @@ namespace ai{
                     }
                 }
 
-                for (const auto &beater : team->beaters) {
-                    if (beater->position != bPos) {
-                        val += beaterBaseThreat / gameController::getDistance(bPos, beater->position);
-                    } else {
-                        val += beaterHoldsBludgerDiscount;
-                    }
+
+            }
+
+            for (const auto &beater : team->beaters) {
+                auto bPos = env->bludgers[0]->position;
+
+                if(gameController::getDistance(beater->position, env->bludgers[1]->position) < gameController::getDistance(beater->position, bPos)){
+                    bPos = env->bludgers[1]->position;
+                }
+                std::cout<<bPos.x<<" "<<bPos.y<<std::endl;
+                if (beater->position != bPos) {
+                    val += beaterBaseThreat / gameController::getDistance(bPos, beater->position);
+                } else {
+                    val += beaterHoldsBludgerDiscount;
                 }
             }
 
-            return team->side == mySide ? val : -val;
+            return team->getSide() == mySide ? val : -val;
         };
 
 
@@ -306,7 +315,7 @@ namespace ai{
         double chance = 0;
         auto goalPos = gameModel::Environment::getGoalsRight();
 
-        if (env->getTeam(actor)->side == gameModel::TeamSide::LEFT) {
+        if (env->getTeam(actor)->getSide() == gameModel::TeamSide::LEFT) {
             goalPos = env->getGoalsLeft();
         }
 

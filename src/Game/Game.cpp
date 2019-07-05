@@ -92,7 +92,7 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
 
     switch (currentState.overtimeState) {
         case gameController::ExcessLength::None:
-            if (currentState.roundNumber == currentState.env->config.maxRounds) {
+            if (currentState.roundNumber == currentState.env->config.getMaxRounds()) {
                 currentState.overtimeState = gameController::ExcessLength::Stage1;
             }
 
