@@ -30,7 +30,8 @@ namespace ai{
         auto valBludgers = evalBludgers(localEnv, mySide);
 
         //Assume the KI plays left
-        val = valTeam1 - valTeam2 + valBludgers;
+        val = valTeam1 - valTeam2;
+        val += mySide == gameModel::TeamSide::LEFT ? valBludgers : -valBludgers;
 
         int bannedTeam1 = localEnv->getTeam(gameModel::TeamSide::LEFT)->numberOfBannedMembers();
         int bannedTeam2 = localEnv->getTeam(gameModel::TeamSide::RIGHT)->numberOfBannedMembers();
@@ -81,16 +82,20 @@ namespace ai{
         constexpr auto winSnitchDistanceDiscount = 1000.0;
         constexpr auto nearCenterDiscount = 10.0;
         constexpr auto baseVal = 500;
+        constexpr auto knockoutPenalty = 500;
 
         constexpr auto centerX = 8;
         constexpr auto centerY = 6;
 
         double val = 0;
 
-        if(seeker->isFined || seeker->knockedOut) {
+        if(seeker->isFined) {
             return val;
         } else {
             val += baseVal;
+        }
+        if(seeker->knockedOut){
+            val -= knockoutPenalty;
         }
 
         int scoreDiff = 0;
@@ -138,6 +143,7 @@ namespace ai{
         constexpr auto baseVal = 450;
         constexpr auto keeperBonusPotentialEvenWinChance = 10;
         constexpr auto keeperBonusPotentialHighWinChance = 200;
+        constexpr auto knockoutPenalty = 500;
 
         double val = 0;
         int scoreDiff = 0;
@@ -151,6 +157,9 @@ namespace ai{
             return val;
         } else{
             val += baseVal;
+        }
+        if(keeper->knockedOut){
+            val -= knockoutPenalty;
         }
 
         //If keeper has quaffle
@@ -211,6 +220,7 @@ namespace ai{
         constexpr auto goalVirtualChanceDiscountFactorInLead = 0;
         constexpr auto goalVirtualChanceDiscountFactorEven = 100;
         constexpr auto baseVal = 300;
+        constexpr auto knockoutPenalty = 500;
 
         double val = 0;
         int scoreDiff = 0;
@@ -219,6 +229,9 @@ namespace ai{
             return val;
         } else {
             val += baseVal;
+        }
+        if(chaser->knockedOut){
+            val -= knockoutPenalty;
         }
 
         if(env->team1->hasMember(chaser)){
