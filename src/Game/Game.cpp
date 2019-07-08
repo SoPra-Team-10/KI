@@ -132,7 +132,7 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
 
     switch (next.getTurnType()){
         case communication::messages::types::TurnType::MOVE:
-            return aiTools::computeBestMove(currentState, evalFunction, next.getEntityId());
+            return aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), false);
         case communication::messages::types::TurnType::ACTION:{
             auto type = gameController::getPossibleBallActionType(currentState.env->getPlayerById(next.getEntityId()), currentState.env);
             if(!type.has_value()){
@@ -140,7 +140,7 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
             }
 
             if(*type == gameController::ActionType::Throw) {
-                return aiTools::computeBestShot(currentState, evalFunction, next.getEntityId());
+                return aiTools::computeBestShot(currentState, evalFunction, next.getEntityId(), false);
             } else if(*type == gameController::ActionType::Wrest) {
                 return aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
             } else {
@@ -150,7 +150,7 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
         case communication::messages::types::TurnType::FAN:
             return aiTools::getNextFanTurn(currentState, next);
         case communication::messages::types::TurnType::REMOVE_BAN:
-            return aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId());
+            return aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId(), false);
         default:
             throw std::runtime_error("Enum out of bounds");
     }
