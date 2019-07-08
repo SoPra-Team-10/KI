@@ -54,11 +54,11 @@ TEST(ai_test, team_has_quaffle_works_for_right){
     auto env = setup::createEnv();
     auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
     env->quaffle->position = rightTeam->keeper->position;
-    auto res = ai::teamHasQuaffle(env, leftTeam->seeker);
+    auto res = ai::teamHasQuaffle(env, rightTeam->seeker);
     EXPECT_TRUE(res);
 }
 
-TEST(ai_test, team_has_quaffle_works_for_left_when_false){
+TEST(ai_test, team_has_quaffle_works_for_right_when_false){
     auto env = setup::createEnv();
     auto leftTeam = env->getTeam(gameModel::TeamSide::LEFT);
     auto rightTeam = env->getTeam(gameModel::TeamSide::RIGHT);
