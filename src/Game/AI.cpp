@@ -308,7 +308,6 @@ namespace ai{
                 if(gameController::getDistance(beater->position, env->bludgers[1]->position) < gameController::getDistance(beater->position, bPos)){
                     bPos = env->bludgers[1]->position;
                 }
-                std::cout<<bPos.x<<" "<<bPos.y<<std::endl;
                 if (beater->position != bPos) {
                     val += beaterBaseThreat / gameController::getDistance(bPos, beater->position);
                 } else {
