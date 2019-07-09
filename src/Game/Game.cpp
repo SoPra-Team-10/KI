@@ -1,5 +1,3 @@
-#include <utility>
-
 /**
  * @file Game.cpp
  * @author paul
@@ -137,12 +135,12 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
         return ai::evalState(state.env, mySide, state.goalScoredThisRound);
     };
 
+    request::DeltaRequest res;
     switch (next.getTurnType()){
-        case communication::messages::types::TurnType::MOVE:{
-            auto res = aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), abort);
+        case communication::messages::types::TurnType::MOVE:
+            res = aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), abort);
             timer.stop();
-            return res;
-        }
+            break;
         case communication::messages::types::TurnType::ACTION:{
             auto type = gameController::getPossibleBallActionType(currentState.env->getPlayerById(next.getEntityId()), currentState.env);
             if(!type.has_value()){
@@ -150,30 +148,30 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
             }
 
             if(*type == gameController::ActionType::Throw) {
-                auto res = aiTools::computeBestShot(currentState, evalFunction, next.getEntityId(), abort);
+                res = aiTools::computeBestShot(currentState, evalFunction, next.getEntityId(), abort);
                 timer.stop();
-                return res;
             } else if(*type == gameController::ActionType::Wrest) {
-                auto res = aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
+                res = aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
                 timer.stop();
-                return res;
             } else {
                 throw std::runtime_error("Unexpected action type");
             }
+
+            break;
         }
-        case communication::messages::types::TurnType::FAN:{
-            auto res = aiTools::getNextFanTurn(currentState, next);
+        case communication::messages::types::TurnType::FAN:
+            res = aiTools::getNextFanTurn(currentState, next);
             timer.stop();
-            return res;
-        }
-        case communication::messages::types::TurnType::REMOVE_BAN:{
-            auto res = aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId(), abort);
+            break;
+        case communication::messages::types::TurnType::REMOVE_BAN:
+            res = aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId(), abort);
             timer.stop();
-            return res;
-        }
+            break;
         default:
             throw std::runtime_error("Enum out of bounds");
     }
+
+    return res;
 }
 
 auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->

@@ -56,15 +56,16 @@ namespace communication {
         log.info("Got Next request");
         auto computeNextAsync = [this, next](){
             log.debug("ActiveID: " + types::toString(next.getEntityId()));
-            std::unique_ptr<std::optional<request::DeltaRequest>> request;
+            std::optional<request::DeltaRequest> request;
+
             {
                 std::lock_guard lock(updateMutex);
                 log.debug("entering critical section");
-                request = std::make_unique<std::optional<request::DeltaRequest>>(game.getNextAction(next, timer));
+                request = game.getNextAction(next, timer);
                 log.debug("exiting critical section");
             }
 
-            if(request->has_value()){
+            if(request.has_value()){
                 log.info("Requesting Action");
             } else {
                 log.info("Next ignored");
@@ -78,10 +79,10 @@ namespace communication {
 
             timer.stop();
             log.info("Sending ->");
-            send(**request);
-            log.debug("Type sent: " + communication::messages::types::toString((*request)->getDeltaType()));
-            if((*request)->getActiveEntity().has_value()){
-                log.debug("ID sent: " + communication::messages::types::toString((*request)->getActiveEntity().value()));
+            send(*request);
+            log.debug("Type sent: " + communication::messages::types::toString((*request).getDeltaType()));
+            if((*request).getActiveEntity().has_value()){
+                log.debug("ID sent: " + communication::messages::types::toString((*request).getActiveEntity().value()));
             }
         };
 
