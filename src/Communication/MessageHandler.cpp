@@ -24,7 +24,7 @@ namespace communication {
         }
     }
 
-    void MessageHandler::receiveEvent(std::string msg) {
+    void MessageHandler::receiveEvent(const std::string& msg) {
         if (!msg.empty()) {
             try {
                 nlohmann::json json = nlohmann::json::parse(msg);
@@ -32,8 +32,10 @@ namespace communication {
                 receiveListener(message);
             } catch (nlohmann::json::exception &e) {
                 log.error("Got invalid json (or the f*cking lobby mod)!");
+                log.debug(e.what());
             } catch (std::runtime_error &e) {
                 log.error("Got invalid json values!");
+                log.debug(e.what());
             }
         }
     }

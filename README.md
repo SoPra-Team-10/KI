@@ -2,6 +2,19 @@
 # KI
 KI-Client for the Quidditch Game.
 
+## Usage
+In accordance to the standard, it is possible to change some options of the ki-client using command line arguments. For the application the following flags exist:
+
+ * `-a`/`--address` set the address (ip or url) of the server (mandatory)
+ * `-t`/`--team` set the path to the TeamConfig JSON file (mandatory)
+ * `-l`/`--lobby` set the name of the lobby to join (optional, the default is `hogwarts`)
+ * `-u`/`--username` set the name of the player (optional, the default is `Team10Ki`)
+ * `-k`/`--password` set the password used by the ki (optional, the default is `password`)
+ * `-h`/`--help` show the help dialog and exit (optional)
+ * `-p`/`--port`set the port (the port needs to be larger `0` and smaller `65536`) (optional, the default value is `4488`)
+ * `-d`/`--difficulty`set the difficulty of the KI (optional, the default `0`)
+ * `-v`/`--verbosity` change the verbosity level, for more information on log-levels see [SoPra-Team-10/Util](https://github.com/SoPra-Team-10/Util) (optional, the default value is `0`)
+
 ## Getting started
 You can choose between using Docker or manually installing all dependencies.
 Docker is the preferred method as it already installs the toolchain
@@ -35,6 +48,7 @@ of docker.
  * [SopraGameLogic](https://github.com/SoPra-Team-10/GameLogic)
  * [SopraMessages](https://github.com/SoPra-Team-10/Messages)
  * [SopraUtil](https://github.com/SoPra-Team-10/Util)
+ * [SopraAITools](https://github.com/SoPra-Team-10/AITools)
  * Either a POSIX-Compliant OS or Cygwin (to use pthreads)
  * Optional: Google Tests and Google Mock for Unit-Tests
 
@@ -68,6 +82,9 @@ you can now run the ki by executing the created `KI` file:
 ## External Librarys
  * [SopraNetwork](https://github.com/SoPra-Team-10/Network)
  * [SopraGameLogic](https://github.com/SoPra-Team-10/GameLogic)
+ * [SopraMessages](https://github.com/SoPra-Team-10/Messages)
+ * [SopraUtil](https://github.com/SoPra-Team-10/Util)
+ * [SopraAITools](https://github.com/SoPra-Team-10/AITools)
  * [nlohmann::json](https://github.com/nlohmann/json)
 
 ## Doxygen Dokumentation

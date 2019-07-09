@@ -9,11 +9,12 @@
 #include <getopt.h>
 #include <iostream>
 
-static constexpr int PORT_DEFAULT = 4488;
-static constexpr int DIFFICULTY_DEFAULT = 1;
-static constexpr int VERBOSITY_DEFAULT = 0;
 
 namespace util {
+    static constexpr int PORT_DEFAULT = 4488;
+    static constexpr int DIFFICULTY_DEFAULT = 1;
+    static constexpr int VERBOSITY_DEFAULT = 0;
+
     ArgumentParser::ArgumentParser(int argc, char **argv) {
         if (argc <= 1) {
             printHelp();
