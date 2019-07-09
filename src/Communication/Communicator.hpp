@@ -13,6 +13,7 @@
 #include <SopraMessages/Message.hpp>
 #include <SopraMessages/TeamConfig.hpp>
 #include <Game/Game.hpp>
+#include <SopraUtil/Timer.h>
 #include "MessageHandler.hpp"
 
 namespace communication {
@@ -51,6 +52,12 @@ namespace communication {
         MessageHandler messageHandler;
         Game game;
         util::Logging &log;
+        std::atomic_bool paused = false;
+        util::Timer timer;
+        std::condition_variable cvMainToWorker;
+        std::mutex pauseMutex;
+        std::mutex updateMutex;
+        std::thread worker;
     };
 }
 

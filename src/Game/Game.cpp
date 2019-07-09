@@ -13,6 +13,7 @@
 #include <Mlp/Util.h>
 
 constexpr unsigned int OVERTIME_INTERVAL = 3;
+constexpr unsigned int TIMEOUT_TOLERANCE = 2000;
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig,
         const std::string &mlpFname) :
@@ -93,48 +94,55 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
         currentState.env->pileOfShit = pileOfShit;
     }
 
-    switch (currentState.overtimeState){
+    switch (currentState.overtimeState) {
         case gameController::ExcessLength::None:
-            if(currentState.roundNumber == currentState.env->config.maxRounds){
+            if (currentState.roundNumber == currentState.env->config.getMaxRounds()) {
                 currentState.overtimeState = gameController::ExcessLength::Stage1;
             }
 
             break;
         case gameController::ExcessLength::Stage1:
-            if(++currentState.overTimeCounter > OVERTIME_INTERVAL){
+            if (++currentState.overTimeCounter > OVERTIME_INTERVAL) {
                 currentState.overtimeState = gameController::ExcessLength::Stage2;
                 currentState.overTimeCounter = 0;
             }
             break;
         case gameController::ExcessLength::Stage2:
-            if(currentState.env->snitch->position == gameModel::Position{8, 6} &&
-               ++currentState.overTimeCounter > OVERTIME_INTERVAL){
+            if (currentState.env->snitch->position == gameModel::Position{8, 6} &&
+               ++currentState.overTimeCounter > OVERTIME_INTERVAL) {
                 currentState.overtimeState = gameController::ExcessLength::Stage3;
             }
             break;
         case gameController::ExcessLength::Stage3:
             break;
+
     }
 }
 
-auto Game::getNextAction(const communication::messages::broadcast::Next &next)
+auto Game::getNextAction(const communication::messages::broadcast::Next &next, util::Timer &timer)
     -> std::optional<communication::messages::request::DeltaRequest> {
     using namespace communication::messages;
+    using namespace gameLogic::conversions;
     if(!gotFirstSnapshot){
         throw std::runtime_error("Local environment not set!");
     }
 
-    if(gameLogic::conversions::idToSide(next.getEntityId()) != mySide){
+    if(isBall(next.getEntityId()) || idToSide(next.getEntityId()) != mySide){
         return std::nullopt;
     }
 
+
+    bool abort = false;
+    timer.setTimeout([&abort](){ abort = true; }, next.getTimout() - TIMEOUT_TOLERANCE);
     auto evalFunction = [this](const aiTools::State &state){
         return stateEstimator.forward(state.getFeatureVec(this->mySide))[0];
     };
 
+    request::DeltaRequest res;
     switch (next.getTurnType()){
         case communication::messages::types::TurnType::MOVE:
-            return aiTools::computeBestMove(currentState, evalFunction, next.getEntityId());
+            res = aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), abort);
+            break;
         case communication::messages::types::TurnType::ACTION:{
             auto type = gameController::getPossibleBallActionType(currentState.env->getPlayerById(next.getEntityId()), currentState.env);
             if(!type.has_value()){
@@ -142,20 +150,27 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
             }
 
             if(*type == gameController::ActionType::Throw) {
-                return aiTools::computeBestShot(currentState, evalFunction, next.getEntityId());
+                res = aiTools::computeBestShot(currentState, evalFunction, next.getEntityId(), abort);
             } else if(*type == gameController::ActionType::Wrest) {
-                return aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
+                res = aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
             } else {
                 throw std::runtime_error("Unexpected action type");
             }
+
+            break;
         }
         case communication::messages::types::TurnType::FAN:
-            return aiTools::getNextFanTurn(currentState, next);
+            res = aiTools::getNextFanTurn(currentState, next);
+            break;
         case communication::messages::types::TurnType::REMOVE_BAN:
-            return aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId());
+            res = aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId(), abort);
+            break;
         default:
             throw std::runtime_error("Enum out of bounds");
     }
+
+    timer.stop();
+    return res;
 }
 
 auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
