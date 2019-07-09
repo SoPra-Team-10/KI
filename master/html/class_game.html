@@ -89,19 +89,92 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a9411eed75d2c048e2767921f1637e755"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9411eed75d2c048e2767921f1637e755"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Game</b> (unsigned int difficulty, const communication::messages::request::TeamConfig &amp;ownTeamConfig)</td></tr>
-<tr class="separator:a9411eed75d2c048e2767921f1637e755"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e41d537554b16f485717d7cf2b49a2a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4e41d537554b16f485717d7cf2b49a2a"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>getTeamFormation</b> (const communication::messages::broadcast::MatchStart &amp;matchStart) -&gt; communication::messages::request::TeamFormation</td></tr>
+<tr class="memitem:ada36440351e86c24e5c38cdd1966c284"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ada36440351e86c24e5c38cdd1966c284"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Game</b> (unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig)</td></tr>
+<tr class="separator:ada36440351e86c24e5c38cdd1966c284"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e41d537554b16f485717d7cf2b49a2a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game.html#a4e41d537554b16f485717d7cf2b49a2a">getTeamFormation</a> (const communication::messages::broadcast::MatchStart &amp;matchStart) -&gt; communication::messages::request::TeamFormation</td></tr>
 <tr class="separator:a4e41d537554b16f485717d7cf2b49a2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa18060358e0159a9add99127dd7c9bd7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa18060358e0159a9add99127dd7c9bd7"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>onSnapshot</b> (const communication::messages::broadcast::Snapshot &amp;snapshot)</td></tr>
+<tr class="memitem:aa18060358e0159a9add99127dd7c9bd7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game.html#aa18060358e0159a9add99127dd7c9bd7">onSnapshot</a> (const communication::messages::broadcast::Snapshot &amp;snapshot)</td></tr>
 <tr class="separator:aa18060358e0159a9add99127dd7c9bd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a49fda9e1805354fa9e3601ca2bfe8287"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a49fda9e1805354fa9e3601ca2bfe8287"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>getNextAction</b> (const communication::messages::broadcast::Next &amp;next) -&gt; communication::messages::request::DeltaRequest</td></tr>
-<tr class="separator:a49fda9e1805354fa9e3601ca2bfe8287"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb966ece61248a278f119f6ab09d6eb7"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_game.html#acb966ece61248a278f119f6ab09d6eb7">getNextAction</a> (const communication::messages::broadcast::Next &amp;next, util::Timer &amp;timer) -&gt; std::optional&lt; communication::messages::request::DeltaRequest &gt;</td></tr>
+<tr class="separator:acb966ece61248a278f119f6ab09d6eb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="acb966ece61248a278f119f6ab09d6eb7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto Game::getNextAction </td>
+          <td>(</td>
+          <td class="paramtype">const communication::messages::broadcast::Next &amp;&#160;</td>
+          <td class="paramname"><em>next</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">util::Timer &amp;&#160;</td>
+          <td class="paramname"><em>timer</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; std::optional&lt;communication::messages::request::DeltaRequest&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Returns the AIs next action </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">next</td><td>information from the server for the requested turn </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the next action by the AI or nothing if not AIs turn </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a4e41d537554b16f485717d7cf2b49a2a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto Game::getTeamFormation </td>
+          <td>(</td>
+          <td class="paramtype">const communication::messages::broadcast::MatchStart &amp;&#160;</td>
+          <td class="paramname"><em>matchStart</em></td><td>)</td>
+          <td> -&gt; communication::messages::request::TeamFormation</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Gets the TeamFormation for the match </p>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aa18060358e0159a9add99127dd7c9bd7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Game::onSnapshot </td>
+          <td>(</td>
+          <td class="paramtype">const communication::messages::broadcast::Snapshot &amp;&#160;</td>
+          <td class="paramname"><em>snapshot</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Updates the game state after a broadcast </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">snapshot</td><td>the current game state from the server </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>/home/travis/build/SoPra-Team-10/KI/src/Game/<a class="el" href="_game_8hpp_source.html">Game.hpp</a></li>
 <li>/home/travis/build/SoPra-Team-10/KI/src/Game/<a class="el" href="_game_8cpp.html">Game.cpp</a></li>

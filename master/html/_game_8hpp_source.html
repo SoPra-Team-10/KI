@@ -95,19 +95,45 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;SopraMessages/Snapshot.hpp&gt;</span></div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;SopraMessages/Next.hpp&gt;</span></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;SopraMessages/DeltaRequest.hpp&gt;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;</div>
-<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="class_game.html">   17</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_game.html">Game</a> {</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    <a class="code" href="class_game.html">Game</a>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> difficulty, <span class="keyword">const</span> communication::messages::request::TeamConfig &amp;ownTeamConfig);</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    <span class="keyword">auto</span> getTeamFormation(<span class="keyword">const</span> communication::messages::broadcast::MatchStart &amp;matchStart) -&gt; communication::messages::request::TeamFormation;</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <span class="keywordtype">void</span> onSnapshot(<span class="keyword">const</span> communication::messages::broadcast::Snapshot &amp;snapshot);</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    <span class="keyword">auto</span> getNextAction(<span class="keyword">const</span> communication::messages::broadcast::Next &amp;next)</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;        -&gt; communication::messages::request::DeltaRequest;</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;};</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;SopraGameLogic/GameModel.h&gt;</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &lt;SopraGameLogic/GameController.h&gt;</span></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#include &lt;SopraAITools/AITools.h&gt;</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#include &lt;unordered_set&gt;</span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#include &lt;SopraUtil/Timer.h&gt;</span></div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
+<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="class_game.html">   23</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_game.html">Game</a> {</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <a class="code" href="class_game.html">Game</a>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> difficulty, communication::messages::request::TeamConfig ownTeamConfig);</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#endif //KI_GAME_HPP</span></div>
-<div class="ttc" id="class_game_html"><div class="ttname"><a href="class_game.html">Game</a></div><div class="ttdef"><b>Definition:</b> Game.hpp:17</div></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keyword">auto</span> <a class="code" href="class_game.html#a4e41d537554b16f485717d7cf2b49a2a">getTeamFormation</a>(<span class="keyword">const</span> communication::messages::broadcast::MatchStart &amp;matchStart) -&gt; communication::messages::request::TeamFormation;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_game.html#aa18060358e0159a9add99127dd7c9bd7">onSnapshot</a>(<span class="keyword">const</span> communication::messages::broadcast::Snapshot &amp;snapshot);</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">auto</span> <a class="code" href="class_game.html#acb966ece61248a278f119f6ab09d6eb7">getNextAction</a>(<span class="keyword">const</span> communication::messages::broadcast::Next &amp;next, util::Timer &amp;timer)</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        -&gt; std::optional&lt;communication::messages::request::DeltaRequest&gt;;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="keyword">static</span> constexpr <span class="keywordtype">int</span> FIELD_WIDTH = 16;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keywordtype">int</span> difficulty;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="keywordtype">bool</span> gotFirstSnapshot = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    aiTools::State currentState;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    gameModel::TeamSide mySide;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    communication::messages::request::TeamConfig myConfig;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    communication::messages::request::TeamConfig theirConfig = {};</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    communication::messages::broadcast::MatchConfig matchConfig = {};</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    <span class="keyword">auto</span> teamFromSnapshot(<span class="keyword">const</span> communication::messages::broadcast::TeamSnapshot &amp;teamSnapshot, gameModel::TeamSide teamSide) <span class="keyword">const</span> -&gt;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        std::shared_ptr&lt;gameModel::Team&gt;;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;};</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="preprocessor">#endif //KI_GAME_HPP</span></div>
+<div class="ttc" id="class_game_html_acb966ece61248a278f119f6ab09d6eb7"><div class="ttname"><a href="class_game.html#acb966ece61248a278f119f6ab09d6eb7">Game::getNextAction</a></div><div class="ttdeci">auto getNextAction(const communication::messages::broadcast::Next &amp;next, util::Timer &amp;timer) -&gt; std::optional&lt; communication::messages::request::DeltaRequest &gt;</div><div class="ttdef"><b>Definition:</b> Game.cpp:119</div></div>
+<div class="ttc" id="class_game_html_aa18060358e0159a9add99127dd7c9bd7"><div class="ttname"><a href="class_game.html#aa18060358e0159a9add99127dd7c9bd7">Game::onSnapshot</a></div><div class="ttdeci">void onSnapshot(const communication::messages::broadcast::Snapshot &amp;snapshot)</div><div class="ttdef"><b>Definition:</b> Game.cpp:39</div></div>
+<div class="ttc" id="class_game_html_a4e41d537554b16f485717d7cf2b49a2a"><div class="ttname"><a href="class_game.html#a4e41d537554b16f485717d7cf2b49a2a">Game::getTeamFormation</a></div><div class="ttdeci">auto getTeamFormation(const communication::messages::broadcast::MatchStart &amp;matchStart) -&gt; communication::messages::request::TeamFormation</div><div class="ttdef"><b>Definition:</b> Game.cpp:25</div></div>
+<div class="ttc" id="class_game_html"><div class="ttname"><a href="class_game.html">Game</a></div><div class="ttdef"><b>Definition:</b> Game.hpp:23</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['send',['send',['../classcommunication_1_1_message_handler.html#aad2c9f437f119da5aec60f3cf2663f73',1,'communication::MessageHandler']]]
+  ['onsnapshot',['onSnapshot',['../class_game.html#aa18060358e0159a9add99127dd7c9bd7',1,'Game']]]
 ];

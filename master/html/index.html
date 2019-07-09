@@ -80,6 +80,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="textblock"><p><a href="https://travis-ci.org/SoPra-Team-10/KI"></a> </p>
 <h1>KI</h1>
 <p>KI-Client for the Quidditch <a class="el" href="class_game.html">Game</a>.</p>
+<h2>Usage</h2>
+<p>In accordance to the standard, it is possible to change some options of the ki-client using command line arguments. For the application the following flags exist:</p>
+<ul>
+<li><code>-a</code>/<code>--address</code> set the address (ip or url) of the server (mandatory)</li>
+<li><code>-t</code>/<code>--team</code> set the path to the TeamConfig JSON file (mandatory)</li>
+<li><code>-l</code>/<code>--lobby</code> set the name of the lobby to join (optional, the default is <code>hogwarts</code>)</li>
+<li><code>-u</code>/<code>--username</code> set the name of the player (optional, the default is <code>Team10Ki</code>)</li>
+<li><code>-k</code>/<code>--password</code> set the password used by the ki (optional, the default is <code>password</code>)</li>
+<li><code>-h</code>/<code>--help</code> show the help dialog and exit (optional)</li>
+<li><code>-p</code>/<code>--port</code>set the port (the port needs to be larger <code>0</code> and smaller <code>65536</code>) (optional, the default value is <code>4488</code>)</li>
+<li><code>-d</code>/<code>--difficulty</code>set the difficulty of the KI (optional, the default <code>0</code>)</li>
+<li><code>-v</code>/<code>--verbosity</code> change the verbosity level, for more information on log-levels see <a href="https://github.com/SoPra-Team-10/Util">SoPra-Team-10/Util</a> (optional, the default value is <code>0</code>)</li>
+</ul>
 <h2>Getting started</h2>
 <p>You can choose between using Docker or manually installing all dependencies. Docker is the preferred method as it already installs the toolchain and all dependencies.</p>
 <h3>Docker</h3>
@@ -96,6 +109,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li><a href="https://github.com/SoPra-Team-10/GameLogic">SopraGameLogic</a></li>
 <li><a href="https://github.com/SoPra-Team-10/Messages">SopraMessages</a></li>
 <li><a href="https://github.com/SoPra-Team-10/Util">SopraUtil</a></li>
+<li><a href="https://github.com/SoPra-Team-10/AITools">SopraAITools</a></li>
 <li>Either a POSIX-Compliant OS or Cygwin (to use pthreads)</li>
 <li>Optional: Google Tests and Google Mock for Unit-Tests</li>
 </ul>
@@ -121,6 +135,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <ul>
 <li><a href="https://github.com/SoPra-Team-10/Network">SopraNetwork</a></li>
 <li><a href="https://github.com/SoPra-Team-10/GameLogic">SopraGameLogic</a></li>
+<li><a href="https://github.com/SoPra-Team-10/Messages">SopraMessages</a></li>
+<li><a href="https://github.com/SoPra-Team-10/Util">SopraUtil</a></li>
+<li><a href="https://github.com/SoPra-Team-10/AITools">SopraAITools</a></li>
 <li><a href="https://github.com/nlohmann/json">nlohmann::json</a></li>
 </ul>
 <h2>Doxygen Dokumentation</h2>

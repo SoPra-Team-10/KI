@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['printhelp',['printHelp',['../classutil_1_1_argument_parser.html#af94e90be0cc1019b0c89d78a471971a9',1,'util::ArgumentParser']]]
+  ['messagehandler',['MessageHandler',['../classcommunication_1_1_message_handler.html#a44c27453da2f8c290c4fe482ee1d5e77',1,'communication::MessageHandler']]]
 ];
