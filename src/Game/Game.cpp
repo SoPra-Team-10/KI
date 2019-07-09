@@ -12,8 +12,9 @@
 #include <SopraGameLogic/GameController.h>
 
 constexpr unsigned int OVERTIME_INTERVAL = 3;
+constexpr unsigned int TIMEOUT_TOLERANCE = 2000;
 
-Game::Game(unsigned int difficulty, const communication::messages::request::TeamConfig &ownTeamConfig) :
+Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
     difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
     currentState.availableFansRight = {};
     currentState.availableFansLeft = {};
@@ -115,24 +116,30 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
     }
 }
 
-auto Game::getNextAction(const communication::messages::broadcast::Next &next)
+auto Game::getNextAction(const communication::messages::broadcast::Next &next, util::Timer &timer)
     -> std::optional<communication::messages::request::DeltaRequest> {
     using namespace communication::messages;
+    using namespace gameLogic::conversions;
     if(!gotFirstSnapshot){
         throw std::runtime_error("Local environment not set!");
     }
 
-    if(gameLogic::conversions::idToSide(next.getEntityId()) != mySide){
+    if(isBall(next.getEntityId()) || idToSide(next.getEntityId()) != mySide){
         return std::nullopt;
     }
 
+
+    bool abort = false;
+    timer.setTimeout([&abort](){ abort = true; }, next.getTimout() - TIMEOUT_TOLERANCE);
     auto evalFunction = [this](const aiTools::State &state){
         return ai::evalState(state.env, mySide, state.goalScoredThisRound);
     };
 
+    request::DeltaRequest res;
     switch (next.getTurnType()){
         case communication::messages::types::TurnType::MOVE:
-            return aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), false);
+            res = aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), abort);
+            break;
         case communication::messages::types::TurnType::ACTION:{
             auto type = gameController::getPossibleBallActionType(currentState.env->getPlayerById(next.getEntityId()), currentState.env);
             if(!type.has_value()){
@@ -140,20 +147,27 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next)
             }
 
             if(*type == gameController::ActionType::Throw) {
-                return aiTools::computeBestShot(currentState, evalFunction, next.getEntityId(), false);
+                res = aiTools::computeBestShot(currentState, evalFunction, next.getEntityId(), abort);
             } else if(*type == gameController::ActionType::Wrest) {
-                return aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
+                res = aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
             } else {
                 throw std::runtime_error("Unexpected action type");
             }
+
+            break;
         }
         case communication::messages::types::TurnType::FAN:
-            return aiTools::getNextFanTurn(currentState, next);
+            res = aiTools::getNextFanTurn(currentState, next);
+            break;
         case communication::messages::types::TurnType::REMOVE_BAN:
-            return aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId(), false);
+            res = aiTools::redeployPlayer(currentState, evalFunction, next.getEntityId(), abort);
+            break;
         default:
             throw std::runtime_error("Enum out of bounds");
     }
+
+    timer.stop();
+    return res;
 }
 
 auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
