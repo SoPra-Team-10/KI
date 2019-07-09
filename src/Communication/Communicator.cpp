@@ -74,15 +74,14 @@ namespace communication {
 
             if(paused){
                 std::unique_lock<std::mutex> lock(pauseMutex);
-                cvMainToWorker.wait(lock, [this] { return paused ? false : true; });
+                cvMainToWorker.wait(lock, [this] { return !static_cast<bool>(paused); });
             }
 
-            timer.stop();
             log.info("Sending ->");
             send(*request);
-            log.debug("Type sent: " + communication::messages::types::toString((*request).getDeltaType()));
-            if((*request).getActiveEntity().has_value()){
-                log.debug("ID sent: " + communication::messages::types::toString((*request).getActiveEntity().value()));
+            log.debug("Type sent: " + communication::messages::types::toString(request->getDeltaType()));
+            if(request->getActiveEntity().has_value()){
+                log.debug("ID sent: " + communication::messages::types::toString(request->getActiveEntity().value()));
             }
         };
 
@@ -91,7 +90,6 @@ namespace communication {
         }
 
         log.debug("Starting worker...");
-
         worker = std::thread(computeNextAsync);
     }
 

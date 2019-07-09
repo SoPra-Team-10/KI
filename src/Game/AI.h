@@ -9,6 +9,8 @@
 #include <SopraGameLogic/GameModel.h>
 #include <SopraGameLogic/GameController.h>
 #include <SopraMessages/Message.hpp>
+#include <SopraUtil/Logging.hpp>
+
 namespace ai {
 
     /**
@@ -18,7 +20,9 @@ namespace ai {
      * @param goalScoredThisRound Wheather or not a goal was scored this round
      * @return A number indicating how favorable the current situation is. The higher the number the better
      */
-    double evalState(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide, bool goalScoredThisRound);
+
+    double evalState(const std::shared_ptr<const gameModel::Environment> &environment, gameModel::TeamSide mySide,
+                     bool goalScoredThisRound);
 
     /**
      * Evaluates the positioning of players in a single team
@@ -26,8 +30,7 @@ namespace ai {
      * @param env The environment the team is playing in
      * @return A number indicating the value of the team
      */
-    double evalTeam(const std::shared_ptr<const gameModel::Team> &team,
-                    const std::shared_ptr<gameModel::Environment> &env);
+    double evalTeam(const std::shared_ptr<const gameModel::Team> &team, const std::shared_ptr<gameModel::Environment> &env);
 
     /**
      * Evaluates the positioning of a seeker
@@ -43,8 +46,7 @@ namespace ai {
      * @param env Environment the keeper is in
      * @return A number that indicates the value of the keeper
      */
-    double evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper,
-                      const std::shared_ptr<gameModel::Environment> &env);
+    double evalKeeper(const std::shared_ptr<gameModel::Keeper> &keeper, const std::shared_ptr<gameModel::Environment> &env);
 
     /**
      * Evaluates the positioning of a chaser
@@ -71,6 +73,9 @@ namespace ai {
      */
     double getHighestGoalRate(const std::shared_ptr<gameModel::Environment> &env,
             const std::shared_ptr<gameModel::Player> &actor);
+
+    bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<const gameModel::Player> &player);
+
 }
 
 #endif //KI_AI_H
