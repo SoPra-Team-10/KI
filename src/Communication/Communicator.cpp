@@ -41,48 +41,68 @@ namespace communication {
     template <>
     void Communicator::onPayloadReceive<messages::broadcast::Snapshot>(
             const messages::broadcast::Snapshot &payload) {
-        log.info("Got Snapshot");
-        game.onSnapshot(payload);
+        {
+            std::lock_guard lock(updateMutex);
+            log.info("Got Snapshot, updating");
+            game.onSnapshot(payload);
+        }
+
+        cvMainToWorker.notify_all();
     }
 
     template <>
     void Communicator::onPayloadReceive<messages::broadcast::Next>(const messages::broadcast::Next &next) {
+        using namespace communication::messages;
         log.info("Got Next request");
-        auto computeNextAsync = [this, &next](){
-            auto request = game.getNextAction(next, timer);
-            if(request.has_value()){
+        auto computeNextAsync = [this, next](){
+            log.debug("ActiveID: " + types::toString(next.getEntityId()));
+            std::unique_ptr<std::optional<request::DeltaRequest>> request;
+            {
+                std::lock_guard lock(updateMutex);
+                log.debug("entering critical section");
+                request = std::make_unique<std::optional<request::DeltaRequest>>(game.getNextAction(next, timer));
+                log.debug("exiting critical section");
+            }
+
+            if(request->has_value()){
                 log.info("Requesting Action");
             } else {
                 log.info("Next ignored");
                 return;
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds{200});
-            std::unique_lock<std::mutex> lock(pauseMutex);
-            cv.wait(lock, [this] { return !paused; });
+            if(paused){
+                std::unique_lock<std::mutex> lock(pauseMutex);
+                cvMainToWorker.wait(lock, [this] { return paused ? false : true; });
+            }
 
             timer.stop();
-            send(*request);
+            log.info("Sending ->");
+            send(**request);
+            log.debug("Type sent: " + communication::messages::types::toString((*request)->getDeltaType()));
+            if((*request)->getActiveEntity().has_value()){
+                log.debug("ID sent: " + communication::messages::types::toString((*request)->getActiveEntity().value()));
+            }
         };
 
-        if(!once){
-            once = true;
-        } else {
+        if(worker.joinable()){
             worker.join();
         }
+
+        log.debug("Starting worker...");
 
         worker = std::thread(computeNextAsync);
     }
 
     template <>
     void Communicator::onPayloadReceive<messages::broadcast::PauseResponse>(const messages::broadcast::PauseResponse &pauseResponse){
-        log.info("--- Pause response received ---");
         {
             std::lock_guard<std::mutex> lock(pauseMutex);
+            log.info("Pause response received");
             paused = pauseResponse.isPause();
         }
 
-        cv.notify_all();
+        cvMainToWorker.notify_all();
     }
 
     template <>

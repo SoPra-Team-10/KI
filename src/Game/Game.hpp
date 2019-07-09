@@ -22,7 +22,7 @@
 
 class Game {
 public:
-    Game(unsigned int difficulty, const communication::messages::request::TeamConfig &ownTeamConfig);
+    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig);
 
     /**
      * Gets the TeamFormation for the match

@@ -50,12 +50,12 @@ namespace communication {
         MessageHandler messageHandler;
         Game game;
         util::Logging &log;
-        bool paused = false;
+        std::atomic_bool paused = false;
         util::Timer timer;
-        std::condition_variable cv;
+        std::condition_variable cvMainToWorker;
         std::mutex pauseMutex;
+        std::mutex updateMutex;
         std::thread worker;
-        bool once = false;
     };
 }
 
