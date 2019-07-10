@@ -144,12 +144,12 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
             }
 
             lastId = next.getEntityId();
-            res = aiTools::computeBestActionAlphaBeta(currentState, evalFunction, actionState, 4, abort);
+            res = aiTools::computeBestActionAlphaBeta(currentState, evalFunction, actionState, 3, abort);
             break;
         }
         case communication::messages::types::TurnType::ACTION:{
             aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::Action);
-            res = aiTools::computeBestActionAlphaBeta(currentState, evalFunction, actionState, 4, abort);
+            res = aiTools::computeBestActionAlphaBeta(currentState, evalFunction, actionState, 3, abort);
             break;
         }
         case communication::messages::types::TurnType::FAN:

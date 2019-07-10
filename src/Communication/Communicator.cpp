@@ -61,6 +61,7 @@ namespace communication {
             {
                 std::lock_guard lock(updateMutex);
                 log.debug("entering critical section");
+                log.debug("Requested action type: " + types::toString(next.getTurnType()));
                 request = game.getNextAction(next, timer);
                 log.debug("exiting critical section");
             }
@@ -79,9 +80,9 @@ namespace communication {
 
             log.info("Sending ->");
             send(*request);
-            log.debug("Type sent: " + communication::messages::types::toString(request->getDeltaType()));
+            log.debug("Type sent: " + types::toString(request->getDeltaType()));
             if(request->getActiveEntity().has_value()){
-                log.debug("ID sent: " + communication::messages::types::toString(request->getActiveEntity().value()));
+                log.debug("ID sent: " + types::toString(request->getActiveEntity().value()));
             }
         };
 
