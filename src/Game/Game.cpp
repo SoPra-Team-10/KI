@@ -138,7 +138,10 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
     request::DeltaRequest res;
     switch (next.getTurnType()){
         case communication::messages::types::TurnType::MOVE:
-            res = aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), abort);
+//            res = aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), abort);
+            aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::FirstMove);
+            auto ding = aiTools::alphaBetaSearch(currentState,actionState, mySide, -std::numeric_limits<double>::infinity(),
+                    std::numeric_limits<double>::infinity(), 3, evalFunction);
             break;
         case communication::messages::types::TurnType::ACTION:{
             auto type = gameController::getPossibleBallActionType(currentState.env->getPlayerById(next.getEntityId()), currentState.env);
