@@ -137,26 +137,19 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
 
     request::DeltaRequest res;
     switch (next.getTurnType()){
-        case communication::messages::types::TurnType::MOVE:
-//            res = aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), abort);
+        case communication::messages::types::TurnType::MOVE:{
             aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::FirstMove);
-            auto ding = aiTools::alphaBetaSearch(currentState,actionState, mySide, -std::numeric_limits<double>::infinity(),
-                    std::numeric_limits<double>::infinity(), 3, evalFunction);
+            if(next.getEntityId() == lastId){
+                actionState.turnState = aiTools::ActionState::TurnState::SecondMove;
+            }
+
+            lastId = next.getEntityId();
+            res = aiTools::computeBestActionAlphaBeta(currentState, evalFunction, actionState, 4, abort);
             break;
+        }
         case communication::messages::types::TurnType::ACTION:{
-            auto type = gameController::getPossibleBallActionType(currentState.env->getPlayerById(next.getEntityId()), currentState.env);
-            if(!type.has_value()){
-                throw std::runtime_error("No action possible");
-            }
-
-            if(*type == gameController::ActionType::Throw) {
-                res = aiTools::computeBestShot(currentState, evalFunction, next.getEntityId(), abort);
-            } else if(*type == gameController::ActionType::Wrest) {
-                res = aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
-            } else {
-                throw std::runtime_error("Unexpected action type");
-            }
-
+            aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::Action);
+            res = aiTools::computeBestActionAlphaBeta(currentState, evalFunction, actionState, 4, abort);
             break;
         }
         case communication::messages::types::TurnType::FAN:

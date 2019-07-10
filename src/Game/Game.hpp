@@ -53,6 +53,7 @@ private:
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
+    communication::messages::types::EntityId lastId = communication::messages::types::EntityId::BLUDGER1;
 
 
     /**
