@@ -66,7 +66,6 @@ namespace communication {
         std::mutex updateMutex;
         std::thread worker;
         std::atomic_bool isConnected = true;
-        std::queue<messages::Payload> toSendAfterReconnect;
         std::future<void> reconnectThread;
         bool teamConfigSent;
     };

@@ -139,8 +139,6 @@ namespace communication {
     void Communicator::send(const messages::Payload &payload) {
         if (isConnected) {
             messageHandler.value().send(messages::Message{payload});
-        } else {
-            toSendAfterReconnect.emplace(payload);
         }
     }
 
@@ -165,10 +163,5 @@ namespace communication {
 
         send(messages::request::JoinRequest{lobbyName, userName, password, true});
         log.info("Send JoinRequest");
-
-        while (!toSendAfterReconnect.empty()) {
-            send(toSendAfterReconnect.front());
-            toSendAfterReconnect.pop();
-        }
     }
 }
