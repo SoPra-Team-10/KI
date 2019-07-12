@@ -13,9 +13,10 @@
 
 constexpr unsigned int OVERTIME_INTERVAL = 3;
 constexpr unsigned int TIMEOUT_TOLERANCE = 2000;
+constexpr unsigned int MIN_SEARCH_DEPTH = 2;
 
-Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
-    difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
+Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging log) :
+        difficulty(difficulty), myConfig(std::move(ownTeamConfig)), log(log) {
     currentState.availableFansRight = {};
     currentState.availableFansLeft = {};
     currentState.playersUsedRight = {};
@@ -124,10 +125,12 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
         throw std::runtime_error("Local environment not set!");
     }
 
+    log.debug("ActiveID: " + types::toString(next.getEntityId()));
+    log.debug("Requested action type: " + types::toString(next.getTurnType()));
     if(isBall(next.getEntityId()) || idToSide(next.getEntityId()) != mySide){
+        log.info("Not my turn, ignoring request");
         return std::nullopt;
     }
-
 
     std::atomic_bool abort = false;
     timer.setTimeout([&abort](){ abort = true; }, next.getTimout() - TIMEOUT_TOLERANCE);
@@ -144,12 +147,16 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
             }
 
             lastId = next.getEntityId();
-            res = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort);
+            auto [action, depth, expansions] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH);
+            log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+            res = action;
             break;
         }
         case communication::messages::types::TurnType::ACTION:{
             aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::Action);
-            res = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort);
+            auto [action, depth, expansions] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH);
+            log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+            res = action;
             break;
         }
         case communication::messages::types::TurnType::FAN:

@@ -12,7 +12,7 @@ namespace communication {
                                 const std::string &password,
                                 unsigned int difficulty, const messages::request::TeamConfig &teamConfig,
                                 const std::string &server, uint16_t port, util::Logging &log)
-            : messageHandler{server, port, log}, game{difficulty, teamConfig}, log{log} {
+            : messageHandler{server, port, log}, game{difficulty, teamConfig, log}, log{log} {
         messageHandler.receiveListener(
                 std::bind(&Communicator::onMessageReceive, this, std::placeholders::_1));
 
@@ -41,13 +41,11 @@ namespace communication {
     template <>
     void Communicator::onPayloadReceive<messages::broadcast::Snapshot>(
             const messages::broadcast::Snapshot &payload) {
-        {
-            std::lock_guard lock(updateMutex);
+        if(updateMutex.try_lock()){
             log.info("Got Snapshot, updating");
             game.onSnapshot(payload);
+            updateMutex.unlock();
         }
-
-        cvMainToWorker.notify_all();
     }
 
     template <>
@@ -55,15 +53,11 @@ namespace communication {
         using namespace communication::messages;
         log.info("Got Next request");
         auto computeNextAsync = [this, next](){
-            log.debug("ActiveID: " + types::toString(next.getEntityId()));
             std::optional<request::DeltaRequest> request;
 
             {
                 std::lock_guard lock(updateMutex);
-                log.debug("entering critical section");
-                log.debug("Requested action type: " + types::toString(next.getTurnType()));
                 request = game.getNextAction(next, timer);
-                log.debug("exiting critical section");
             }
 
             if(request.has_value()){
