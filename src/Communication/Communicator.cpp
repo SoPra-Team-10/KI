@@ -8,18 +8,30 @@
 #include "Communicator.hpp"
 
 namespace communication {
+    constexpr auto RECONNECT_INTERVAL = 1000;
+
     Communicator::Communicator(const std::string &lobbyName, const std::string &userName,
                                 const std::string &password,
                                 unsigned int difficulty, const messages::request::TeamConfig &teamConfig,
                                 const std::string &server, uint16_t port, util::Logging &log)
-            : messageHandler{server, port, log}, game{difficulty, teamConfig, log}, log{log} {
-        messageHandler.receiveListener(
+            : messageHandler{}, server{server}, port{port}, lobbyName{lobbyName}, userName{userName}, password{password},
+                game{difficulty, teamConfig, log}, teamConfig{teamConfig}, log{log}, teamConfigSent{false} {
+        messageHandler.emplace(server, port, log);
+        messageHandler->receiveListener(
                 std::bind(&Communicator::onMessageReceive, this, std::placeholders::_1));
-
+        messageHandler->closeListener(std::bind(&Communicator::onClose, this));
         send(messages::request::JoinRequest{lobbyName, userName, password, true});
         log.info("Send JoinRequest");
-        send(teamConfig);
-        log.info("Send TeamConfig");
+    }
+
+    template <>
+    void Communicator::onPayloadReceive(const messages::unicast::JoinResponse &) {
+        if (!teamConfigSent) {
+            log.info("Got Join Response");
+            send(teamConfig);
+            log.info("Send TeamConfig");
+            teamConfigSent = true;
+        }
     }
 
     template <>
@@ -32,9 +44,9 @@ namespace communication {
 
     template <>
     __attribute__((noreturn)) void Communicator::onPayloadReceive<messages::broadcast::MatchFinish>(
-            const messages::broadcast::MatchFinish &) {
+            const messages::broadcast::MatchFinish &matchFinish) {
         log.info("Got MatchFinish, exiting");
-        //@TODO maybe print some more information (who won...)
+        log.info("Winner: " + matchFinish.getWinnerUserName());
         std::exit(0);
     }
 
@@ -111,12 +123,38 @@ namespace communication {
 
 
     void Communicator::onMessageReceive(const messages::Message& message) {
+        isConnected = true;
         std::visit([this](const auto &payload){
             this->onPayloadReceive(payload);
         }, message.getPayload());
     }
 
     void Communicator::send(const messages::Payload &payload) {
-        messageHandler.send(messages::Message{payload});
+        if (isConnected) {
+            messageHandler.value().send(messages::Message{payload});
+        }
+    }
+
+    void Communicator::onClose() {
+        log.error("Closed");
+        isConnected = false;
+        reconnectThread = std::async(std::launch::async, std::bind(&Communicator::reconnectRunner, this));
+    }
+
+    void Communicator::reconnectRunner() {
+        while (!isConnected) {
+            messageHandler.reset();
+            log.info("Trying reconnect");
+            messageHandler.emplace(server, port, log);
+            messageHandler->receiveListener(
+                    std::bind(&Communicator::onMessageReceive, this, std::placeholders::_1));
+            std::this_thread::sleep_for(std::chrono::milliseconds{RECONNECT_INTERVAL});
+        }
+
+        messageHandler->closeListener(std::bind(&Communicator::onClose, this));
+        log.info("Reconnect successful");
+
+        send(messages::request::JoinRequest{lobbyName, userName, password, true});
+        log.info("Send JoinRequest");
     }
 }
