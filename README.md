@@ -23,7 +23,10 @@ and all dependencies.
 ### Docker
 
 #### Prebuild Docker Image
-Get a prebuild Docker Image [here](https://hub.docker.com/r/soprateamzehn/ki).
+Get a prebuild Docker Image [here](https://hub.docker.com/r/soprateamzehn/ki) or run:
+```
+docker pull soprateamzehn/ki
+```
 
 #### Build your own Docker Image from source
 In the root directory of the project build the docker image
