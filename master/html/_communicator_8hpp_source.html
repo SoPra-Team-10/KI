@@ -91,45 +91,57 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor"></span><span class="preprocessor">#define KI_COMMUNICATOR_HPP</span></div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor"></span></div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;SopraUtil/Logging.hpp&gt;</span></div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;SopraMessages/Message.hpp&gt;</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;SopraMessages/TeamConfig.hpp&gt;</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="_game_8hpp.html">Game/Game.hpp</a>&gt;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;SopraUtil/Timer.h&gt;</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_message_handler_8hpp.html">MessageHandler.hpp</a>&quot;</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="keyword">namespace </span>communication {</div>
-<div class="line"><a name="l00024"></a><span class="lineno"><a class="line" href="classcommunication_1_1_communicator.html">   24</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classcommunication_1_1_communicator.html">Communicator</a> {</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;        <a class="code" href="classcommunication_1_1_communicator.html#ab40e3b0e04083a017325a28d661db990">Communicator</a>(<span class="keyword">const</span> std::string &amp;lobbyName, <span class="keyword">const</span> std::string &amp;userName,</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;                <span class="keyword">const</span> std::string &amp;password, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> difficulty,</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;                <span class="keyword">const</span> messages::request::TeamConfig &amp;teamConfig,</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;                <span class="keyword">const</span> std::string &amp;server, uint16_t port, util::Logging &amp;log);</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        <span class="keywordtype">void</span> onMessageReceive(<span class="keyword">const</span> messages::Message&amp; message);</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        <span class="keywordtype">void</span> send(<span class="keyword">const</span> messages::Payload &amp;payload);</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;        <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        <span class="keywordtype">void</span> onPayloadReceive(<span class="keyword">const</span> T &amp;payload);</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        <a class="code" href="classcommunication_1_1_message_handler.html">MessageHandler</a> messageHandler;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        <a class="code" href="class_game.html">Game</a> game;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;        util::Logging &amp;log;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        std::atomic_bool paused = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        util::Timer timer;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        std::condition_variable cvMainToWorker;</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        std::mutex pauseMutex;</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        std::mutex updateMutex;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        std::thread worker;</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    };</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;}</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="preprocessor">#endif //KI_COMMUNICATOR_HPP</span></div>
-<div class="ttc" id="classcommunication_1_1_communicator_html_ab40e3b0e04083a017325a28d661db990"><div class="ttname"><a href="classcommunication_1_1_communicator.html#ab40e3b0e04083a017325a28d661db990">communication::Communicator::Communicator</a></div><div class="ttdeci">Communicator(const std::string &amp;lobbyName, const std::string &amp;userName, const std::string &amp;password, unsigned int difficulty, const messages::request::TeamConfig &amp;teamConfig, const std::string &amp;server, uint16_t port, util::Logging &amp;log)</div><div class="ttdef"><b>Definition:</b> Communicator.cpp:11</div></div>
-<div class="ttc" id="classcommunication_1_1_message_handler_html"><div class="ttname"><a href="classcommunication_1_1_message_handler.html">communication::MessageHandler</a></div><div class="ttdef"><b>Definition:</b> MessageHandler.hpp:20</div></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;queue&gt;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;SopraUtil/Logging.hpp&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;SopraMessages/Message.hpp&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &lt;SopraMessages/TeamConfig.hpp&gt;</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;<a class="code" href="_game_8hpp.html">Game/Game.hpp</a>&gt;</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &lt;SopraUtil/Timer.h&gt;</span></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="_message_handler_8hpp.html">MessageHandler.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="keyword">namespace </span>communication {</div>
+<div class="line"><a name="l00025"></a><span class="lineno"><a class="line" href="classcommunication_1_1_communicator.html">   25</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classcommunication_1_1_communicator.html">Communicator</a> {</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        <a class="code" href="classcommunication_1_1_communicator.html#ab40e3b0e04083a017325a28d661db990">Communicator</a>(<span class="keyword">const</span> std::string &amp;lobbyName, <span class="keyword">const</span> std::string &amp;userName,</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;                <span class="keyword">const</span> std::string &amp;password, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> difficulty,</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;                <span class="keyword">const</span> messages::request::TeamConfig &amp;teamConfig,</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;                <span class="keyword">const</span> std::string &amp;server, uint16_t port, util::Logging &amp;log);</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        <span class="keywordtype">void</span> onMessageReceive(<span class="keyword">const</span> messages::Message&amp; message);</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        <span class="keywordtype">void</span> send(<span class="keyword">const</span> messages::Payload &amp;payload);</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;        <span class="keywordtype">void</span> onPayloadReceive(<span class="keyword">const</span> T &amp;payload);</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        <span class="keywordtype">void</span> onClose();</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        <span class="keywordtype">void</span> reconnectRunner();</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        std::optional&lt;MessageHandler&gt; messageHandler;</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        std::string server;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        uint16_t port;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        std::string lobbyName, userName, password;</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        <a class="code" href="class_game.html">Game</a> game;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        messages::request::TeamConfig teamConfig;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        util::Logging &amp;log;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        std::atomic_bool paused = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        util::Timer timer;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        std::condition_variable cvMainToWorker;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        std::mutex pauseMutex;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        std::mutex updateMutex;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        std::thread worker;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        std::atomic_bool isConnected = <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        std::queue&lt;messages::Payload&gt; toSendAfterReconnect;</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        std::future&lt;void&gt; reconnectThread;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <span class="keywordtype">bool</span> teamConfigSent;</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    };</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;}</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="preprocessor">#endif //KI_COMMUNICATOR_HPP</span></div>
+<div class="ttc" id="classcommunication_1_1_communicator_html_ab40e3b0e04083a017325a28d661db990"><div class="ttname"><a href="classcommunication_1_1_communicator.html#ab40e3b0e04083a017325a28d661db990">communication::Communicator::Communicator</a></div><div class="ttdeci">Communicator(const std::string &amp;lobbyName, const std::string &amp;userName, const std::string &amp;password, unsigned int difficulty, const messages::request::TeamConfig &amp;teamConfig, const std::string &amp;server, uint16_t port, util::Logging &amp;log)</div><div class="ttdef"><b>Definition:</b> Communicator.cpp:13</div></div>
 <div class="ttc" id="_message_handler_8hpp_html"><div class="ttname"><a href="_message_handler_8hpp.html">MessageHandler.hpp</a></div><div class="ttdoc">Declaration of the MessageHandler class. </div></div>
-<div class="ttc" id="classcommunication_1_1_communicator_html"><div class="ttname"><a href="classcommunication_1_1_communicator.html">communication::Communicator</a></div><div class="ttdef"><b>Definition:</b> Communicator.hpp:24</div></div>
+<div class="ttc" id="classcommunication_1_1_communicator_html"><div class="ttname"><a href="classcommunication_1_1_communicator.html">communication::Communicator</a></div><div class="ttdef"><b>Definition:</b> Communicator.hpp:25</div></div>
 <div class="ttc" id="class_game_html"><div class="ttname"><a href="class_game.html">Game</a></div><div class="ttdef"><b>Definition:</b> Game.hpp:23</div></div>
 <div class="ttc" id="_game_8hpp_html"><div class="ttname"><a href="_game_8hpp.html">Game.hpp</a></div><div class="ttdoc">Game . </div></div>
 </div><!-- fragment --></div><!-- contents -->
