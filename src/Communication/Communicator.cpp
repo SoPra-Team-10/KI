@@ -60,10 +60,7 @@ namespace communication {
                 request = game.getNextAction(next, timer);
             }
 
-            if(request.has_value()){
-                log.info("Requesting Action");
-            } else {
-                log.info("Next ignored");
+            if(!request.has_value()){
                 return;
             }
 

@@ -62,8 +62,8 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
     auto bludgers = std::array<std::shared_ptr<gameModel::Bludger>, 2>
             {std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger1X(),
                                                                       snapshot.getBludger1Y()}, EntityId::BLUDGER1),
-             std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger1X(),
-                                                                      snapshot.getBludger1Y()}, EntityId::BLUDGER2)};
+             std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger2X(),
+                                                                      snapshot.getBludger2Y()}, EntityId::BLUDGER2)};
     gameModel::Position snitchPos = {0, 0};
     if(snapshot.getSnitchX().has_value()) {
         snitchPos = {*snapshot.getSnitchX(), *snapshot.getSnitchY()};
@@ -115,12 +115,24 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
             break;
 
     }
+
+    auto players = currentState.env->getAllPlayers();
+    for(const auto &player : players){
+        for(const auto &otherPlayer : players){
+            if(player != otherPlayer){
+                if(player->position == otherPlayer->position && !player->isFined && !otherPlayer->isFined){
+                    throw std::runtime_error("Two players on same position: " + toString(player->getId()) + " and " + toString(otherPlayer->getId()));
+                }
+            }
+        }
+    }
 }
 
 auto Game::getNextAction(const communication::messages::broadcast::Next &next, util::Timer &timer)
     -> std::optional<communication::messages::request::DeltaRequest> {
     using namespace communication::messages;
     using namespace gameLogic::conversions;
+
     if(!gotFirstSnapshot){
         throw std::runtime_error("Local environment not set!");
     }
