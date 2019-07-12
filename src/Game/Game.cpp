@@ -129,7 +129,7 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
     }
 
 
-    bool abort = false;
+    std::atomic_bool abort = false;
     timer.setTimeout([&abort](){ abort = true; }, next.getTimout() - TIMEOUT_TOLERANCE);
     auto evalFunction = [this](const aiTools::State &state){
         return ai::evalState(state.env, mySide, state.goalScoredThisRound);
@@ -144,12 +144,12 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
             }
 
             lastId = next.getEntityId();
-            res = aiTools::computeBestActionAlphaBeta(currentState, evalFunction, actionState, 3, abort);
+            res = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort);
             break;
         }
         case communication::messages::types::TurnType::ACTION:{
             aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::Action);
-            res = aiTools::computeBestActionAlphaBeta(currentState, evalFunction, actionState, 3, abort);
+            res = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort);
             break;
         }
         case communication::messages::types::TurnType::FAN:
