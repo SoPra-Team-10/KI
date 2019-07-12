@@ -15,7 +15,7 @@ namespace communication {
                                 unsigned int difficulty, const messages::request::TeamConfig &teamConfig,
                                 const std::string &server, uint16_t port, util::Logging &log)
             : messageHandler{}, server{server}, port{port}, lobbyName{lobbyName}, userName{userName}, password{password},
-                game{difficulty, teamConfig}, teamConfig{teamConfig}, log{log}, teamConfigSent{false} {
+                game{difficulty, teamConfig, log}, teamConfig{teamConfig}, log{log}, teamConfigSent{false} {
         messageHandler.emplace(server, port, log);
         messageHandler->receiveListener(
                 std::bind(&Communicator::onMessageReceive, this, std::placeholders::_1));
@@ -53,13 +53,11 @@ namespace communication {
     template <>
     void Communicator::onPayloadReceive<messages::broadcast::Snapshot>(
             const messages::broadcast::Snapshot &payload) {
-        {
-            std::lock_guard lock(updateMutex);
+        if(updateMutex.try_lock()){
             log.info("Got Snapshot, updating");
             game.onSnapshot(payload);
+            updateMutex.unlock();
         }
-
-        cvMainToWorker.notify_all();
     }
 
     template <>
@@ -67,20 +65,14 @@ namespace communication {
         using namespace communication::messages;
         log.info("Got Next request");
         auto computeNextAsync = [this, next](){
-            log.debug("ActiveID: " + types::toString(next.getEntityId()));
             std::optional<request::DeltaRequest> request;
 
             {
                 std::lock_guard lock(updateMutex);
-                log.debug("entering critical section");
                 request = game.getNextAction(next, timer);
-                log.debug("exiting critical section");
             }
 
-            if(request.has_value()){
-                log.info("Requesting Action");
-            } else {
-                log.info("Next ignored");
+            if(!request.has_value()){
                 return;
             }
 
@@ -91,9 +83,9 @@ namespace communication {
 
             log.info("Sending ->");
             send(*request);
-            log.debug("Type sent: " + communication::messages::types::toString(request->getDeltaType()));
+            log.debug("Type sent: " + types::toString(request->getDeltaType()));
             if(request->getActiveEntity().has_value()){
-                log.debug("ID sent: " + communication::messages::types::toString(request->getActiveEntity().value()));
+                log.debug("ID sent: " + types::toString(request->getActiveEntity().value()));
             }
         };
 
@@ -128,6 +120,7 @@ namespace communication {
         log.warn("Got unhandled message:");
         log.warn(T::getName());
     }
+
 
     void Communicator::onMessageReceive(const messages::Message& message) {
         isConnected = true;
