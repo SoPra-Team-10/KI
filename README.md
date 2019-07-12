@@ -28,7 +28,7 @@ Get a prebuild Docker Image [here](https://hub.docker.com/r/soprateamzehn/ki) or
 docker pull soprateamzehn/ki
 ```
 
-#### Build your own Docker Image from source
+#### Build your own Docker Image from the provided Dockerfile
 In the root directory of the project build the docker image
 ("ki" is the name of the container, this can be replaced by a
 different name):
