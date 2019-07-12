@@ -9,6 +9,7 @@
 #define KI_COMMUNICATOR_HPP
 
 #include <string>
+#include <queue>
 #include <SopraUtil/Logging.hpp>
 #include <SopraMessages/Message.hpp>
 #include <SopraMessages/TeamConfig.hpp>
@@ -47,8 +48,16 @@ namespace communication {
         template <typename T>
         void onPayloadReceive(const T &payload);
 
-        MessageHandler messageHandler;
+        void onClose();
+
+        void reconnectRunner();
+
+        std::optional<MessageHandler> messageHandler;
+        std::string server;
+        uint16_t port;
+        std::string lobbyName, userName, password;
         Game game;
+        messages::request::TeamConfig teamConfig;
         util::Logging &log;
         std::atomic_bool paused = false;
         util::Timer timer;
@@ -56,6 +65,10 @@ namespace communication {
         std::mutex pauseMutex;
         std::mutex updateMutex;
         std::thread worker;
+        std::atomic_bool isConnected = true;
+        std::queue<messages::Payload> toSendAfterReconnect;
+        std::future<void> reconnectThread;
+        bool teamConfigSent;
     };
 }
 
