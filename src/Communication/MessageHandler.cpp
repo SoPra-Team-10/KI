@@ -9,7 +9,7 @@
 
 namespace communication {
     MessageHandler::MessageHandler(const std::string &server, uint16_t port, util::Logging &log)
-        : log{log}, socketClient{server, "/", port, "http-only"} {
+        : log{log}, socketClient{server, "/", port, ""} {
         socketClient.receiveListener(
                 std::bind(&MessageHandler::receiveEvent, this, std::placeholders::_1));
         socketClient.closeListener(closeListener);
