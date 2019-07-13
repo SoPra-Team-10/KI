@@ -14,6 +14,9 @@ namespace util {
     static constexpr int PORT_DEFAULT = 4488;
     static constexpr int DIFFICULTY_DEFAULT = 1;
     static constexpr int VERBOSITY_DEFAULT = 0;
+    static constexpr auto LOBBY_DEFAULT = "hogwarts";
+    static constexpr auto USERNAME_DEFAULT = "Team10Ki";
+    static constexpr auto PASSWORD_DEFAULT = "password";
 
     ArgumentParser::ArgumentParser(int argc, char **argv) {
         if (argc <= 1) {
@@ -48,6 +51,10 @@ namespace util {
         int initialPort = PORT_DEFAULT;
         int initialDifficulty = DIFFICULTY_DEFAULT;
         int initialVerbosity = VERBOSITY_DEFAULT;
+        this->lobbyName = LOBBY_DEFAULT;
+        this->uName = USERNAME_DEFAULT;
+        this->pw = PASSWORD_DEFAULT;
+
         while((c = getopt_long(argc, argv, "a:t:l:u:p:k:d:v:h", longopts, &optionIndex)) != -1){
             std::string optionName;
             if(optionIndex == -1){

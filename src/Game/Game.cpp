@@ -13,9 +13,10 @@
 
 constexpr unsigned int OVERTIME_INTERVAL = 3;
 constexpr unsigned int TIMEOUT_TOLERANCE = 2000;
+constexpr unsigned int MIN_SEARCH_DEPTH = 2;
 
-Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig) :
-    difficulty(difficulty), myConfig(std::move(ownTeamConfig)){
+Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging log) :
+        difficulty(difficulty), myConfig(std::move(ownTeamConfig)), log(std::move(log)) {
     currentState.availableFansRight = {};
     currentState.availableFansLeft = {};
     currentState.playersUsedRight = {};
@@ -61,8 +62,8 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
     auto bludgers = std::array<std::shared_ptr<gameModel::Bludger>, 2>
             {std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger1X(),
                                                                       snapshot.getBludger1Y()}, EntityId::BLUDGER1),
-             std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger1X(),
-                                                                      snapshot.getBludger1Y()}, EntityId::BLUDGER2)};
+             std::make_shared<gameModel::Bludger>(gameModel::Position{snapshot.getBludger2X(),
+                                                                      snapshot.getBludger2Y()}, EntityId::BLUDGER2)};
     gameModel::Position snitchPos = {0, 0};
     if(snapshot.getSnitchX().has_value()) {
         snitchPos = {*snapshot.getSnitchX(), *snapshot.getSnitchY()};
@@ -114,22 +115,36 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
             break;
 
     }
+
+    auto players = currentState.env->getAllPlayers();
+    for(const auto &player : players){
+        for(const auto &otherPlayer : players){
+            if(player != otherPlayer){
+                if(player->position == otherPlayer->position && !player->isFined && !otherPlayer->isFined){
+                    throw std::runtime_error("Two players on same position: " + toString(player->getId()) + " and " + toString(otherPlayer->getId()));
+                }
+            }
+        }
+    }
 }
 
 auto Game::getNextAction(const communication::messages::broadcast::Next &next, util::Timer &timer)
     -> std::optional<communication::messages::request::DeltaRequest> {
     using namespace communication::messages;
     using namespace gameLogic::conversions;
+
     if(!gotFirstSnapshot){
         throw std::runtime_error("Local environment not set!");
     }
 
+    log.debug("ActiveID: " + types::toString(next.getEntityId()));
+    log.debug("Requested action type: " + types::toString(next.getTurnType()));
     if(isBall(next.getEntityId()) || idToSide(next.getEntityId()) != mySide){
+        log.info("Not my turn, ignoring request");
         return std::nullopt;
     }
 
-
-    bool abort = false;
+    std::atomic_bool abort = false;
     timer.setTimeout([&abort](){ abort = true; }, next.getTimout() - TIMEOUT_TOLERANCE);
     auto evalFunction = [this](const aiTools::State &state){
         return ai::evalState(state.env, mySide, state.goalScoredThisRound);
@@ -137,23 +152,23 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
 
     request::DeltaRequest res;
     switch (next.getTurnType()){
-        case communication::messages::types::TurnType::MOVE:
-            res = aiTools::computeBestMove(currentState, evalFunction, next.getEntityId(), abort);
+        case communication::messages::types::TurnType::MOVE:{
+            aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::FirstMove);
+            if(next.getEntityId() == lastId){
+                actionState.turnState = aiTools::ActionState::TurnState::SecondMove;
+            }
+
+            lastId = next.getEntityId();
+            auto [action, depth, expansions] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH);
+            log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+            res = action;
             break;
+        }
         case communication::messages::types::TurnType::ACTION:{
-            auto type = gameController::getPossibleBallActionType(currentState.env->getPlayerById(next.getEntityId()), currentState.env);
-            if(!type.has_value()){
-                throw std::runtime_error("No action possible");
-            }
-
-            if(*type == gameController::ActionType::Throw) {
-                res = aiTools::computeBestShot(currentState, evalFunction, next.getEntityId(), abort);
-            } else if(*type == gameController::ActionType::Wrest) {
-                res = aiTools::computeBestWrest(currentState, evalFunction, next.getEntityId());
-            } else {
-                throw std::runtime_error("Unexpected action type");
-            }
-
+            aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::Action);
+            auto [action, depth, expansions] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH);
+            log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+            res = action;
             break;
         }
         case communication::messages::types::TurnType::FAN:
