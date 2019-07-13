@@ -18,11 +18,12 @@
 #include <SopraAITools/AITools.h>
 #include <unordered_set>
 #include <SopraUtil/Timer.h>
+#include <SopraUtil/Logging.hpp>
 
 
 class Game {
 public:
-    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig);
+    Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging log);
 
     /**
      * Gets the TeamFormation for the match
@@ -45,7 +46,6 @@ public:
         -> std::optional<communication::messages::request::DeltaRequest>;
 
 private:
-    static constexpr int FIELD_WIDTH = 16;
     int difficulty;
     bool gotFirstSnapshot = false;
     aiTools::State currentState;
@@ -53,6 +53,8 @@ private:
     communication::messages::request::TeamConfig myConfig;
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
+    communication::messages::types::EntityId lastId = communication::messages::types::EntityId::BLUDGER1;
+    util::Logging log;
 
 
     /**
