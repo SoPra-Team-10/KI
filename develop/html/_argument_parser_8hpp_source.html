@@ -98,39 +98,47 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;        <a class="code" href="classutil_1_1_argument_parser.html#a95fead2dd5e82c3468c19565eb9b2855">ArgumentParser</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> *argv[]);</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;        std::string getAddress() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;        std::string getConfigPath() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;        std::string getLobbyName() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;        std::string <a class="code" href="classutil_1_1_argument_parser.html#a963c00444406ca33b4a60daa29f5a312">getAddress</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;        std::string getUName() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        std::string getPw() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        <span class="keywordtype">int</span> getPort() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;        std::string <a class="code" href="classutil_1_1_argument_parser.html#a674006636b1fd553f5a3f66617fabf75">getConfigPath</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;        <span class="keywordtype">int</span> getDifficulty() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;        <span class="keywordtype">int</span> getVerbosity() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="classutil_1_1_argument_parser.html#af94e90be0cc1019b0c89d78a471971a9">printHelp</a>();</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        std::string address;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        std::string configPath;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;        std::string lobbyName;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;        std::string uName;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;        std::string pw;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;        uint port{};</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> difficulty{};</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> verbosity{};</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    };</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;}</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="preprocessor">#endif //KI_ARGUMENTPARSER_HPP</span></div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        std::string <a class="code" href="classutil_1_1_argument_parser.html#a32b2f978aadfe1f791779d76c74b98c5">getLobbyName</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;        std::string <a class="code" href="classutil_1_1_argument_parser.html#a32a373af983ff783662c32f5c3aaed1d">getUName</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        std::string <a class="code" href="classutil_1_1_argument_parser.html#a8b94835b9b18d17baa28deb7ddaaf55c">getPw</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        <span class="keywordtype">int</span> <a class="code" href="classutil_1_1_argument_parser.html#a79da53cbc1164d5fec2b0b403c807bd4">getPort</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <span class="keywordtype">int</span> <a class="code" href="classutil_1_1_argument_parser.html#abf41039797e83ed55235bf2e89be0ea2">getDifficulty</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;        <span class="keywordtype">int</span> <a class="code" href="classutil_1_1_argument_parser.html#ae1abbe9a95518c5ae9f7029e365e6493">getVerbosity</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="classutil_1_1_argument_parser.html#af94e90be0cc1019b0c89d78a471971a9">printHelp</a>();</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        std::string address;</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        std::string configPath;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        std::string lobbyName;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        std::string uName;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        std::string pw;</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        uint port{};</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;        <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> difficulty{};</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> verbosity{};</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    };</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;}</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<span class="preprocessor">#endif //KI_ARGUMENTPARSER_HPP</span></div>
+<div class="ttc" id="classutil_1_1_argument_parser_html_a79da53cbc1164d5fec2b0b403c807bd4"><div class="ttname"><a href="classutil_1_1_argument_parser.html#a79da53cbc1164d5fec2b0b403c807bd4">util::ArgumentParser::getPort</a></div><div class="ttdeci">int getPort() const </div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:170</div></div>
+<div class="ttc" id="classutil_1_1_argument_parser_html_ae1abbe9a95518c5ae9f7029e365e6493"><div class="ttname"><a href="classutil_1_1_argument_parser.html#ae1abbe9a95518c5ae9f7029e365e6493">util::ArgumentParser::getVerbosity</a></div><div class="ttdeci">int getVerbosity() const </div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:178</div></div>
+<div class="ttc" id="classutil_1_1_argument_parser_html_a674006636b1fd553f5a3f66617fabf75"><div class="ttname"><a href="classutil_1_1_argument_parser.html#a674006636b1fd553f5a3f66617fabf75">util::ArgumentParser::getConfigPath</a></div><div class="ttdeci">std::string getConfigPath() const </div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:154</div></div>
+<div class="ttc" id="classutil_1_1_argument_parser_html_a8b94835b9b18d17baa28deb7ddaaf55c"><div class="ttname"><a href="classutil_1_1_argument_parser.html#a8b94835b9b18d17baa28deb7ddaaf55c">util::ArgumentParser::getPw</a></div><div class="ttdeci">std::string getPw() const </div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:166</div></div>
+<div class="ttc" id="classutil_1_1_argument_parser_html_a32b2f978aadfe1f791779d76c74b98c5"><div class="ttname"><a href="classutil_1_1_argument_parser.html#a32b2f978aadfe1f791779d76c74b98c5">util::ArgumentParser::getLobbyName</a></div><div class="ttdeci">std::string getLobbyName() const </div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:158</div></div>
+<div class="ttc" id="classutil_1_1_argument_parser_html_a32a373af983ff783662c32f5c3aaed1d"><div class="ttname"><a href="classutil_1_1_argument_parser.html#a32a373af983ff783662c32f5c3aaed1d">util::ArgumentParser::getUName</a></div><div class="ttdeci">std::string getUName() const </div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:162</div></div>
 <div class="ttc" id="classutil_1_1_argument_parser_html_af94e90be0cc1019b0c89d78a471971a9"><div class="ttname"><a href="classutil_1_1_argument_parser.html#af94e90be0cc1019b0c89d78a471971a9">util::ArgumentParser::printHelp</a></div><div class="ttdeci">static void printHelp()</div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:135</div></div>
 <div class="ttc" id="classutil_1_1_argument_parser_html_a95fead2dd5e82c3468c19565eb9b2855"><div class="ttname"><a href="classutil_1_1_argument_parser.html#a95fead2dd5e82c3468c19565eb9b2855">util::ArgumentParser::ArgumentParser</a></div><div class="ttdeci">ArgumentParser(int argc, char *argv[])</div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:21</div></div>
 <div class="ttc" id="classutil_1_1_argument_parser_html"><div class="ttname"><a href="classutil_1_1_argument_parser.html">util::ArgumentParser</a></div><div class="ttdef"><b>Definition:</b> ArgumentParser.hpp:18</div></div>
+<div class="ttc" id="classutil_1_1_argument_parser_html_a963c00444406ca33b4a60daa29f5a312"><div class="ttname"><a href="classutil_1_1_argument_parser.html#a963c00444406ca33b4a60daa29f5a312">util::ArgumentParser::getAddress</a></div><div class="ttdeci">std::string getAddress() const </div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:150</div></div>
+<div class="ttc" id="classutil_1_1_argument_parser_html_abf41039797e83ed55235bf2e89be0ea2"><div class="ttname"><a href="classutil_1_1_argument_parser.html#abf41039797e83ed55235bf2e89be0ea2">util::ArgumentParser::getDifficulty</a></div><div class="ttdeci">int getDifficulty() const </div><div class="ttdef"><b>Definition:</b> ArgumentParser.cpp:174</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
