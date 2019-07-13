@@ -1,3 +1,5 @@
+#include <utility>
+
 /**
  * @file Game.cpp
  * @author paul
@@ -16,7 +18,7 @@ constexpr unsigned int TIMEOUT_TOLERANCE = 2000;
 constexpr unsigned int MIN_SEARCH_DEPTH = 2;
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging log) :
-        difficulty(difficulty), myConfig(std::move(ownTeamConfig)), log(log) {
+        difficulty(difficulty), myConfig(std::move(ownTeamConfig)), log(std::move(log)) {
     currentState.availableFansRight = {};
     currentState.availableFansLeft = {};
     currentState.playersUsedRight = {};
