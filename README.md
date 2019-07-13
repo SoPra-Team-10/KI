@@ -40,7 +40,7 @@ Now start the container, you need to map the internal port
 (8080 by default, to some external port 80 in this case) and
 map the external file (match.json) to an internal file:
 ```
-docker run -v $(pwd)/match.json:match.json -p 80:8080 ki ./KI -a ADRESS -t teamConfig.json -l LOBBY
+docker run -t ki ./build/KI -a ADDRESS -p PORT -t teamConfig.json -l LOBBY -u USERNAME -k PASSWD -v 4
 ```
 That's it you should now have a running docker instance.
 
