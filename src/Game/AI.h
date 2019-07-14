@@ -17,7 +17,7 @@ namespace ai {
      * Evaluates a game situation
      * @param env Environment to evaluate
      * @param mySide The Side that the KI is playing
-     * @param goalScoredThisRound Wheather or not a goal was scored this round
+     * @param goalScoredThisRound Whether or not a goal was scored this round
      * @return A number indicating how favorable the current situation is. The higher the number the better
      */
 
@@ -74,6 +74,12 @@ namespace ai {
     double getHighestGoalRate(const std::shared_ptr<gameModel::Environment> &env,
             const std::shared_ptr<gameModel::Player> &actor);
 
+    /**
+     * Checks if the team of the given Player has the Quaffle
+     * @param env the current Environment
+     * @param player The Player of the Team to be checked
+     * @return true if the player's Team is in possession of the Quaffle, false otherwise
+     */
     bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<const gameModel::Player> &player);
 
 }

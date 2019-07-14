@@ -26,20 +26,52 @@ namespace util {
          */
         ArgumentParser(int argc, char *argv[]);
 
+        /**
+         * Get the address
+         * @return the value given to the address flag
+         */
         std::string getAddress() const;
 
+        /**
+         * Get the config path
+         * @return the value given to the teamConfig flag
+         */
         std::string getConfigPath() const;
 
+        /**
+         * Return the lobby
+         * @return the value given to the lobby flag or "hogwarts"
+         */
         std::string getLobbyName() const;
 
+        /**
+         * Return the username
+         * @return the value given to the username flag or "Team10Ki"
+         */
         std::string getUName() const;
 
+        /**
+         * Return the password
+         * @return the value given to the password flag or "password"
+         */
         std::string getPw() const;
 
+        /**
+         * Return the port
+         * @return the value given to the port flag or 4488
+         */
         int getPort() const;
 
+        /**
+         * Return the difficulty
+         * @return the value given to the difficulty flag or 0
+         */
         int getDifficulty() const;
 
+        /**
+         * Return the verbosity
+         * @return the value given to the verbosity flag or 0
+         */
         int getVerbosity() const;
 
         /**
