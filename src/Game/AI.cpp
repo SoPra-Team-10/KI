@@ -77,12 +77,13 @@ namespace ai{
     double evalSeeker(const std::shared_ptr<const gameModel::Seeker> &seeker,
                       const std::shared_ptr<const gameModel::Environment> &env) {
         constexpr auto optimalPathThreshold = 5;
-        constexpr auto gameLosePenalty = 2000;
+        constexpr auto gameLosePenalty = 20000;
         constexpr auto baseSnitchdistanceDiscount = 200.0;
-        constexpr auto winSnitchDistanceDiscount = 1000.0;
+        constexpr auto winSnitchDistanceDiscount = 10000.0;
         constexpr auto nearCenterDiscount = 10.0;
         constexpr auto baseVal = 500;
         constexpr auto knockoutPenalty = 500;
+        constexpr auto banPenalty = 5000;
 
         constexpr auto centerX = 8;
         constexpr auto centerY = 6;
@@ -90,6 +91,7 @@ namespace ai{
         double val = 0;
 
         if(seeker->isFined) {
+            val = -banPenalty;
             return val;
         } else {
             val += baseVal;
@@ -274,9 +276,9 @@ namespace ai{
     }
 
     double evalBludgers(const std::shared_ptr<const gameModel::Environment> &env, gameModel::TeamSide mySide) {
-        constexpr auto keeperBaseThreat = 500.0;
-        constexpr auto seekerBaseThreat = 550.0;
-        constexpr auto chaserBaseThreat = 500.0;
+        constexpr auto keeperBaseThreat = 100.0;
+        constexpr auto seekerBaseThreat = 150.0;
+        constexpr auto chaserBaseThreat = 100.0;
         constexpr auto beaterBaseThreat = 400.0;
         constexpr auto beaterHoldsBludgerDiscount = 500;
 
