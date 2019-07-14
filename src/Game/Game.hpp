@@ -27,7 +27,7 @@ public:
 
     /**
      * Gets the TeamFormation for the match
-     * @return
+     * @return the TeamFormation for the match
      */
     auto getTeamFormation(const communication::messages::broadcast::MatchStart &matchStart) -> communication::messages::request::TeamFormation;
 
@@ -40,6 +40,7 @@ public:
     /**
      * Returns the AIs next action
      * @param next information from the server for the requested turn
+     * @param timer Timer object for timeout event
      * @return the next action by the AI or nothing if not AIs turn
      */
     auto getNextAction(const communication::messages::broadcast::Next &next, util::Timer &timer)
