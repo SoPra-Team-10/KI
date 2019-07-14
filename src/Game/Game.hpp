@@ -55,7 +55,7 @@ private:
     communication::messages::request::TeamConfig theirConfig = {};
     communication::messages::broadcast::MatchConfig matchConfig = {};
     communication::messages::types::EntityId lastId = communication::messages::types::EntityId::BLUDGER1;
-    util::Logging log;
+    mutable util::Logging log;
 
 
     /**
@@ -66,6 +66,13 @@ private:
      */
     auto teamFromSnapshot(const communication::messages::broadcast::TeamSnapshot &teamSnapshot, gameModel::TeamSide teamSide) const ->
         std::shared_ptr<gameModel::Team>;
+
+    /**
+     * Such dank, much memes, wow!
+     * @param snapshot
+     */
+    void generateShitTalk(const communication::messages::broadcast::Snapshot &snapshot,
+            const aiTools::State &lastState, const aiTools::State &newState) const;
 };
 
 
