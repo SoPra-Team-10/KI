@@ -68,7 +68,7 @@ private:
         std::shared_ptr<gameModel::Team>;
 
     /**
-     * Such dank, much memes, wow!
+     * Such dank, much memes, very wow!
      * @param snapshot
      */
     void generateShitTalk(const communication::messages::broadcast::Snapshot &snapshot,
