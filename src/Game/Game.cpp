@@ -133,7 +133,7 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
     }
 
     if(lastState.has_value()){
-        generateShitTalk(snapshot, *lastState, currentState);
+        generateShitTalk(snapshot, lastState.value(), currentState);
     }
 }
 
