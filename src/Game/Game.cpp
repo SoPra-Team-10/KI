@@ -408,7 +408,7 @@ void Game::generateShitTalk(const communication::messages::broadcast::Snapshot &
              "⣿⣿⣿⣿⣿⣷⣶⣤⣤⣤⣤⣤⣤⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣤⣤⣾⣿");
             break;
         case DeltaType::BLUDGER_KNOCKOUT:
-            if(gameLogic::conversions::idToSide(delta.getPassiveEntity().value()) == mySide){
+            if(gameLogic::conversions::idToSide(delta.getPassiveEntity().value()) != mySide){
                 if(delta.isSuccess().value()){
                     log.shitTalk("Immer mitten in die Fresse rein, na na na na na nana na na na na nana nana na...");
                 }
