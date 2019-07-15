@@ -14,6 +14,7 @@
 constexpr unsigned int OVERTIME_INTERVAL = 3;
 constexpr unsigned int TIMEOUT_TOLERANCE = 2000;
 constexpr unsigned int MIN_SEARCH_DEPTH = 2;
+constexpr unsigned int MAX_SEARCH_DEPTH = 10;
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging log) :
         difficulty(difficulty), myConfig(std::move(ownTeamConfig)), log(std::move(log)) {
@@ -134,6 +135,11 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
 
     if(lastState.has_value()){
         generateShitTalk(snapshot, lastState.value(), currentState);
+        auto oldVal = ai::simpleEval(*lastState, mySide);
+        auto newVal = ai::simpleEval(currentState, mySide);
+        if(newVal != oldVal){
+            log.debug("State value has changed: " + std::to_string(oldVal) + " -> " + std::to_string(newVal));
+        }
     }
 }
 
@@ -156,7 +162,8 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
     std::atomic_bool abort = false;
     timer.setTimeout([&abort](){ abort = true; }, next.getTimout() - TIMEOUT_TOLERANCE);
     auto evalFunction = [this](const aiTools::State &state){
-        return ai::evalState(state.env, mySide, state.goalScoredThisRound);
+        //return ai::evalState(state.env, mySide, state.goalScoredThisRound);
+        return ai::simpleEval(state, mySide);
     };
 
     request::DeltaRequest res;
@@ -168,15 +175,17 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
             }
 
             lastId = next.getEntityId();
-            auto [action, depth, expansions] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH);
+            auto [action, depth, expansions, score] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH, MAX_SEARCH_DEPTH);
             log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+            log.debug("Expected future state value: " + std::to_string(score));
             res = action;
             break;
         }
         case communication::messages::types::TurnType::ACTION:{
             aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::Action);
-            auto [action, depth, expansions] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH);
+            auto [action, depth, expansions, score] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH, MAX_SEARCH_DEPTH);
             log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+            log.debug("Expected future state value: " + std::to_string(score));
             res = action;
             break;
         }

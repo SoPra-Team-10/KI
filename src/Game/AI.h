@@ -13,6 +13,8 @@
 
 namespace ai {
 
+    double simpleEval(const aiTools::State &state, gameModel::TeamSide mySide);
+
     /**
      * Evaluates a game situation
      * @param env Environment to evaluate
