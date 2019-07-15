@@ -39,6 +39,11 @@ auto Game::getTeamFormation(const communication::messages::broadcast::MatchStart
 
 void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapshot) {
     using namespace communication::messages::types;
+    std::optional<aiTools::State> lastState;
+    if(gotFirstSnapshot){
+        lastState = currentState.clone();
+    }
+
     currentState.roundNumber = snapshot.getRound();
     currentState.currentPhase = snapshot.getPhase();
     currentState.goalScoredThisRound = snapshot.isGoalWasThrownThisRound();
@@ -125,6 +130,10 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
                 }
             }
         }
+    }
+
+    if(lastState.has_value()){
+        generateShitTalk(snapshot, *lastState, currentState);
     }
 }
 
@@ -256,4 +265,199 @@ auto Game::teamFromSnapshot(const communication::messages::broadcast::TeamSnapsh
 
     gameModel::Fanblock fans(teleport, rangedAttack, impulse, snitchPush, blockCell);
     return std::make_shared<gameModel::Team>(seeker, keeper, beaters, chasers, teamSnapshot.getPoints(), fans, teamSide);
+}
+
+void Game::generateShitTalk(const communication::messages::broadcast::Snapshot &snapshot, const aiTools::State &lastState,
+        const aiTools::State &newState) const {
+    using namespace communication::messages::types;
+    auto delta = snapshot.getLastDeltaBroadcast();
+    auto pointsSide = [&lastState, &newState]() -> std::optional<gameModel::TeamSide>{
+
+        if(lastState.env->getTeam(gameModel::TeamSide::LEFT)->score - newState.env->getTeam(gameModel::TeamSide::LEFT)->score != 0){
+            return gameModel::TeamSide::LEFT;
+        } else if(lastState.env->getTeam(gameModel::TeamSide::RIGHT)->score - newState.env->getTeam(gameModel::TeamSide::RIGHT)->score != 0){
+            return gameModel::TeamSide::RIGHT;
+        }
+
+        return std::nullopt;
+    };
+
+    switch (delta.getDeltaType()){
+        case DeltaType::SNITCH_CATCH:{
+            auto side = pointsSide();
+            if(side.has_value()){
+                if(*side == mySide){
+                    log.shitTalk("Oh baby a triple!");
+                } else {
+                    log.shitTalk("FeelsBadMan");
+                    log.shitTalk(std::string("\n") +
+                    "__________████████_____██████\n" +
+                     "_________█░░░░░░░░██_██░░░░░░█\n" +
+                     "________█░░░░░░░░░░░█░░░░░░░░░█\n" +
+                     "_______█░░░░░░░███░░░█░░░░░░░░░█\n" +
+                     "_______█░░░░███░░░███░█░░░████░█\n" +
+                     "______█░░░██░░░░░░░░███░██░░░░██\n" +
+                     "_____█░░░░░░░░░░░░░░░░░█░░░░░░░░███\n" +
+                     "____█░░░░░░░░░░░░░██████░░░░░████░░█\n" +
+                     "____█░░░░░░░░░█████░░░████░░██░░██░░█\n" +
+                     "___██░░░░░░░███░░░░░░░░░░█░░░░░░░░███\n" +
+                     "__█░░░░░░░░░░░░░░█████████░░█████████\n" +
+                     "_█░░░░░░░░░░█████_████___████_█████___█\n" +
+                     "_█░░░░░░░░░░█______█_███__█_____███_█___█\n" +
+                     "█░░░░░░░░░░░░█___████_████____██_██████\n" +
+                     "░░░░░░░░░░░░░█████████░░░████████░░░█\n" +
+                     "░░░░░░░░░░░░░░░░█░░░░░█░░░░░░░░░░░░█\n" +
+                     "░░░░░░░░░░░░░░░░░░░░██░░░░█░░░░░░██\n" +
+                     "░░░░░░░░░░░░░░░░░░██░░░░░░░███████\n" +
+                     "░░░░░░░░░░░░░░░░██░░░░░░░░░░█░░░░░█\n" +
+                     "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█\n" +
+                     "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█\n" +
+                     "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█\n" +
+                     "░░░░░░░░░░░█████████░░░░░░░░░░░░░░██\n" +
+                     "░░░░░░░░░░█▒▒▒▒▒▒▒▒███████████████▒▒█\n" +
+                     "░░░░░░░░░█▒▒███████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█\n" +
+                     "░░░░░░░░░█▒▒▒▒▒▒▒▒▒█████████████████\n" +
+                     "░░░░░░░░░░████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█\n" +
+                     "░░░░░░░░░░░░░░░░░░██████████████████\n" +
+                     "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█\n" +
+                     "██░░░░░░░░░░░░░░░░░░░░░░░░░░░██\n" +
+                     "▓██░░░░░░░░░░░░░░░░░░░░░░░░██\n" +
+                     "▓▓▓███░░░░░░░░░░░░░░░░░░░░█\n" +
+                     "▓▓▓▓▓▓███░░░░░░░░░░░░░░░██\n" +
+                     "▓▓▓▓▓▓▓▓▓███████████████▓▓█\n" +
+                     "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██\n" +
+                     "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█\n" +
+                     "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█");
+                }
+            }
+            break;
+        }
+        case DeltaType::BLUDGER_BEATING:break;
+        case DeltaType::QUAFFLE_THROW:{
+            if(delta.isSuccess().value()){
+                log.shitTalk("Wow, such throw, much Quaffle, very Quidditch");
+                log.shitTalk(std::string("\n") +
+                             "░░░░░░░░░▄░░░░░░░░░░░░░░▄░░░░\n" +
+                             "░░░░░░░░▌▒█░░░░░░░░░░░▄▀▒▌░░░\n" +
+                             "░░░░░░░░▌▒▒█░░░░░░░░▄▀▒▒▒▐░░░\n" +
+                             "░░░░░░░▐▄▀▒▒▀▀▀▀▄▄▄▀▒▒▒▒▒▐░░░\n" +
+                             "░░░░░▄▄▀▒░▒▒▒▒▒▒▒▒▒█▒▒▄█▒▐░░░\n" +
+                             "░░░▄▀▒▒▒░░░▒▒▒░░░▒▒▒▀██▀▒▌░░░\n" +
+                             "░░▐▒▒▒▄▄▒▒▒▒░░░▒▒▒▒▒▒▒▀▄▒▒▌░░\n" +
+                             "░░▌░░▌█▀▒▒▒▒▒▄▀█▄▒▒▒▒▒▒▒█▒▐░░\n" +
+                             "░▐░░░▒▒▒▒▒▒▒▒▌██▀▒▒░░░▒▒▒▀▄▌░\n" +
+                             "░▌░▒▄██▄▒▒▒▒▒▒▒▒▒░░░░░░▒▒▒▒▌░\n" +
+                             "▀▒▀▐▄█▄█▌▄░▀▒▒░░░░░░░░░░▒▒▒▐░\n" +
+                             "▐▒▒▐▀▐▀▒░▄▄▒▄▒▒▒▒▒▒░▒░▒░▒▒▒▒▌\n" +
+                             "▐▒▒▒▀▀▄▄▒▒▒▄▒▒▒▒▒▒▒▒░▒░▒░▒▒▐░\n" +
+                             "░▌▒▒▒▒▒▒▀▀▀▒▒▒▒▒▒░▒░▒░▒░▒▒▒▌░\n" +
+                             "░▐▒▒▒▒▒▒▒▒▒▒▒▒▒▒░▒░▒░▒▒▄▒▒▐░░\n" +
+                             "░░▀▄▒▒▒▒▒▒▒▒▒▒▒░▒░▒░▒▄▒▒▒▒▌░░\n" +
+                             "░░░░▀▄▒▒▒▒▒▒▒▒▒▒▄▄▄▀▒▒▒▒▄▀░░░\n" +
+                             "░░░░░░▀▄▄▄▄▄▄▀▀▀▒▒▒▒▒▄▄▀░░░░░\n" +
+                             "░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▀▀░░░░░░░░");
+            }
+
+            break;
+        }
+        case DeltaType::SNITCH_SNATCH:break;
+        case DeltaType::TROLL_ROAR:break;
+        case DeltaType::ELF_TELEPORTATION:
+            if(gameLogic::conversions::idToSide(delta.getActiveEntity().value()) == mySide){
+                log.shitTalk(std::string("\n") +
+                "░░░░░▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░\n" +
+                 "░░░▓▓▓▓▓▓▒▒▒▒▒▒▓▓░░░░░░░\n" +
+                 "░░▓▓▓▓▒░░▒▒▓▓▒▒▓▓▓▓░░░░░\n" +
+                 "░▓▓▓▓▒░░▓▓▓▒▄▓░▒▄▄▄▓░░░░\n" +
+                 "▓▓▓▓▓▒░░▒▀▀▀▀▒░▄░▄▒▓▓░░░\n" +
+                 "▓▓▓▓▓▒░░▒▒▒▒▒▓▒▀▒▀▒▓▒▓░░\n" +
+                 "▓▓▓▓▓▒▒░░░▒▒▒░░▄▀▀▀▄▓▒▓░\n" +
+                 "▓▓▓▓▓▓▒▒░░░▒▒▓▀▄▄▄▄▓▒▒▒▓\n" +
+                 "░▓█▀▄▒▓▒▒░░░▒▒░░▀▀▀▒▒▒▒\n" +
+                 " ░░▓█▒▒▄▒▒▒▒▒▒▒░░▒▒▒▒▒▒▓░\n" +
+                 "░░░▓▓▓▓▒▒▒▒▒▒▒▒░░░▒▒▒▓▓░\n" +
+                 "░░░░░▓▓▒░░▒▒▒▒▒▒▒▒▒▒▒▓▓\n" +
+                 " ░░░░░░▓▒▒░░░░▒▒▒▒▒▒▒▓▓░░");
+            }
+            break;
+        case DeltaType::GOBLIN_SHOCK:break;
+        case DeltaType::BAN:
+            log.shitTalk(std::string("\n") +
+            "⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠛⠉⠙⠻⣿\n" +
+             "⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣤⣀⣠⣴⣿\n" +
+             "⣿⣿⣿⣿⣿⣿⣿⣿⠿⠿⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⢿⣿⣿\n" +
+             "⣿⣿⣿⡿⠛⠉⠂⠂⠂⠂⠂⠂⠂⠂⠉⠛⢿⣿⣿⣿⣿⣿⣿⣿⡏⠂⠂⠂⠈⣿\n" +
+             "⣿⣿⠋⠂⠂⠂⠂⠂⣀⣤⣤⣀⡀⠂⠂⠂⠂⠙⣿⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⣿⠃⠂⠂⠂⠂⣰⣿⣿⣿⣿⣿⣿⣦⠂⠂⠂⠂⠘⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⡏⠂⠂⠂⠂⢰⣿⣿⣿⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⢹⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⡇⠂⠂⠂⠂⢸⣿⣿⣿⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⢸⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⡇⠂⠂⠂⠂⢸⣿⣿⣿⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⢸⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⣿⡀⠂⠂⠂⠂⢿⣿⣿⣿⣿⣿⣿⡿⠁⠂⠂⠂⢀⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⣿⣷⡀⠂⠂⠂⠂⠙⠻⠿⠿⠟⠋⠂⠂⠂⠂⢀⣾⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⣿⣿⣿⣦⣀⠂⠂⠂⠂⠂⠂⠂⠂⠂⠂⢀⣴⣿⣿⣿⣿⣿⣿⣿⡇⠂⠂⠂⠂⣿\n" +
+             "⣿⣿⣿⣿⣿⣷⣶⣤⣤⣤⣤⣤⣤⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣤⣤⣾⣿");
+            break;
+        case DeltaType::BLUDGER_KNOCKOUT:
+            if(gameLogic::conversions::idToSide(delta.getPassiveEntity().value()) == mySide){
+                if(delta.isSuccess().value()){
+                    log.shitTalk("Immer mitten in die Fresse rein, na na na na na nana na na na na nana nana na...");
+                }
+            } else if(delta.isSuccess().value()){
+                log.shitTalk(std::string("\n") +
+                             "⢀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⣠⣤⣶⣶\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⢰⣿⣿⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⣀⣀⣾⣿⣿⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⡏⠉⠛⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⠀⠀⠀⠈⠛⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠛⠉⠁⠀⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣧⡀⠀⠀⠀⠀⠙⠿⠿⠿⠻⠿⠿⠟⠿⠛⠉⠀⠀⠀⠀⠀⣸⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣷⣄⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⣿⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⣴⣿⣿⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⡟⠀⠀⢰⣹⡆⠀⠀⠀⠀⠀⠀⣭⣷⠀⠀⠀⠸⣿⣿⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⠃⠀⠀⠈⠉⠀⠀⠤⠄⠀⠀⠀⠉⠁⠀⠀⠀⠀⢿⣿⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⢾⣿⣷⠀⠀⠀⠀⡠⠤⢄⠀⠀⠀⠠⣿⣿⣷⠀⢸⣿⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⡀⠉⠀⠀⠀⠀⠀⢄⠀⢀⠀⠀⠀⠀⠉⠉⠁⠀⠀⣿⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿\n" +
+                             "⣿⣿⣿⣿⣿⣿⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿\n");
+            }
+
+            break;
+        case DeltaType::MOVE:break;
+        case DeltaType::PHASE_CHANGE:break;
+        case DeltaType::GOAL_POINTS_CHANGE:{
+            auto side = pointsSide();
+            if(side.has_value()){
+                if(*side == mySide){
+                    log.shitTalk("O-oooooooooo AAAAE-A-A-I-A-U- JO-oooooooooooo AAE-O-A-A-U-U-A- E-eee-ee-eee AAAAE-A-E-I-E-A-JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA");
+                } else {
+                    log.shitTalk("Damn son!");
+                }
+            }
+
+            break;
+        }
+        case DeltaType::ROUND_CHANGE:break;
+        case DeltaType::SKIP:break;
+        case DeltaType::UNBAN:{
+            log.shitTalk(std::string("\n") +
+            "░░░░░░░░░░░░▄█▀█▀▀▀▀▀▀▀▀▄▄░░░░░░░░\n" +
+             "░░░░░░░░░░▄██▀░█░░░░░░░░░░▀▀▄▄░░░░\n" +
+             "░░░░░░░░░░███▀█▀█▄▄▄▄▄▄▄▒▒▒▄███░░░\n" +
+             "░░░░░░░░▄██░░░░█░░░░░░░░▀▀▀▀▀▀█░░░\n" +
+             "░░░░░░▄███░░░░░░█░░░░░░░░░░░░░░░░░\n" +
+             "░░░░░█████▄░░░░░█░░░░░░░░░░░░░░░░░\n" +
+             "░░░░████████▄▄░█░░░░A░NEW░░░░░░░░░\n" +
+             "░░░████████████░░░░░░TOUCAN░░░░░░░\n" +
+             "░░░▀██████████░░░░░░░░HAS░░░░░░░░░\n" +
+             "░░░░██▒▀█▒▀█▀░░░░░░░░░░ARRIVED░░░░\n" +
+             "░■▓▓▓▓▓▄▓▓▄▓▓▓▓▓▓▓▓■░░░░░░░░░░░░░░\n" +
+             "░░░▄▄███▀░░░░░░░░░░░░░░░░░░░░░░░░░\n");
+            break;
+        }
+        case DeltaType::WREST_QUAFFLE:break;
+        case DeltaType::FOOL_AWAY:break;
+        case DeltaType::TURN_USED:break;
+        case DeltaType::WOMBAT_POO:break;
+        case DeltaType::REMOVE_POO:break;
+    }
 }
