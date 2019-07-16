@@ -162,7 +162,6 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
     std::atomic_bool abort = false;
     timer.setTimeout([&abort](){ abort = true; }, next.getTimout() - TIMEOUT_TOLERANCE);
     auto evalFunction = [this](const aiTools::State &state){
-        //return ai::evalState(state.env, mySide, state.goalScoredThisRound);
         return ai::simpleEval(state, mySide);
     };
 
