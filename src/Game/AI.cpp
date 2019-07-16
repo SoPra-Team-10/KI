@@ -384,8 +384,8 @@ namespace ai{
 
     double simpleEval(const aiTools::State &state, gameModel::TeamSide mySide) {
         constexpr auto halfGoal = gameController::GOAL_POINTS / 2;
-        constexpr auto disqPenalty = 1000;
-        constexpr auto seekerBanPenalty = 1000000;
+        constexpr auto disqPenalty = 10000;
+        constexpr auto seekerBanPenalty = 10000;
         double val = 0;
         auto otherSide = mySide == gameModel::TeamSide::LEFT ? gameModel::TeamSide::RIGHT : gameModel::TeamSide::LEFT;
         //Score difference
@@ -459,18 +459,18 @@ namespace ai{
 
             auto myDistance = gameController::getDistance(mySeeker->position, state.env->snitch->position);
             auto opDistance = gameController::getDistance(opponentSeeker->position, state.env->snitch->position);
-            auto distDiff = 8 * (opDistance - myDistance);
+            auto distDiff = gameController::SNITCH_POINTS * (opDistance - myDistance);
 
             if(!mySeeker->isFined && !opponentSeeker->isFined) {
                 val += distDiff;
             }
 
-            if (mySeeker->isFined&& !opponentSeeker->isFined) {
-                val -= seekerBanPenalty;
+            if (mySeeker->isFined && !opponentSeeker->isFined && !state.goalScoredThisRound) {
+                val -= seekerBanPenalty - myDistance;
             }
 
-            if(opponentSeeker->isFined && !mySeeker->isFined) {
-                val += 16 - myDistance;
+            if(opponentSeeker->isFined && !mySeeker->isFined && !state.goalScoredThisRound) {
+                val += seekerBanPenalty - myDistance;
             }
         }
 
