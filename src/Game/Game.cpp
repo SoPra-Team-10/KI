@@ -168,16 +168,33 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
     request::DeltaRequest res;
     switch (next.getTurnType()){
         case communication::messages::types::TurnType::MOVE:{
-            aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::FirstMove);
-            if(next.getEntityId() == lastId){
-                actionState.turnState = aiTools::ActionState::TurnState::SecondMove;
+            auto player = currentState.env->getPlayerById(next.getEntityId());
+            if(currentState.env->snitch->exists && INSTANCE_OF(player, gameModel::Seeker)){
+                auto path = aiTools::computeOptimalPath(player, currentState.env->snitch->position, currentState.env);
+                if(path.size() >= 2){
+                    path.pop_back();
+                    for(auto it = path.rbegin(); it != path.rend(); ++it){
+                        log.debug("step to {" + std::to_string(it->x) + " | " + std::to_string(it->y) + "}");
+                    }
+                    res = request::DeltaRequest{types::DeltaType::MOVE, std::nullopt, std::nullopt, std::nullopt, path.back().x,
+                                                path.back().y, player->getId(), std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                } else {
+                    res = request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, player->getId(),
+                                                  std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                }
+            } else {
+                aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::FirstMove);
+                if(next.getEntityId() == lastId){
+                    actionState.turnState = aiTools::ActionState::TurnState::SecondMove;
+                }
+
+                auto [action, depth, expansions, score] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH, MAX_SEARCH_DEPTH);
+                log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+                log.debug("Expected future state value: " + std::to_string(score));
+                res = action;
             }
 
             lastId = next.getEntityId();
-            auto [action, depth, expansions, score] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH, MAX_SEARCH_DEPTH);
-            log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
-            log.debug("Expected future state value: " + std::to_string(score));
-            res = action;
             break;
         }
         case communication::messages::types::TurnType::ACTION:{

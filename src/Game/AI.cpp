@@ -384,8 +384,8 @@ namespace ai{
 
     double simpleEval(const aiTools::State &state, gameModel::TeamSide mySide) {
         constexpr auto halfGoal = gameController::GOAL_POINTS / 2;
-        constexpr auto disqPenalty = 10000;
-        constexpr auto seekerBanPenalty = 10000;
+        constexpr auto disqPenalty = std::numeric_limits<int>::max();
+        constexpr auto maxDist = 16;
         double val = 0;
         auto otherSide = mySide == gameModel::TeamSide::LEFT ? gameModel::TeamSide::RIGHT : gameModel::TeamSide::LEFT;
         //Score difference
@@ -459,18 +459,18 @@ namespace ai{
 
             auto myDistance = gameController::getDistance(mySeeker->position, state.env->snitch->position);
             auto opDistance = gameController::getDistance(opponentSeeker->position, state.env->snitch->position);
-            auto distDiff = gameController::SNITCH_POINTS * (opDistance - myDistance);
+            auto distDiff = 2 * (opDistance - myDistance);
 
             if(!mySeeker->isFined && !opponentSeeker->isFined) {
                 val += distDiff;
             }
 
             if (mySeeker->isFined && !opponentSeeker->isFined && !state.goalScoredThisRound) {
-                val -= seekerBanPenalty - myDistance;
+                val -= maxDist - myDistance;
             }
 
             if(opponentSeeker->isFined && !mySeeker->isFined && !state.goalScoredThisRound) {
-                val += seekerBanPenalty - myDistance;
+                val += maxDist - myDistance;
             }
         }
 
@@ -494,8 +494,12 @@ namespace ai{
         // Ban advantage
         auto banDiff = state.env->getTeam(otherSide)->numberOfBannedMembers()
                 - state.env->getTeam(mySide)->numberOfBannedMembers();
-        val += 2 * banDiff;
+        auto tmp = banDiff * banDiff * banDiff * banDiff;
+        if(banDiff < 0){
+            tmp *= -1;
+        }
 
+        val += tmp;
         //Disqualification penalty
         if(state.env->getTeam(mySide)->numberOfBannedMembers() > 2 && !state.goalScoredThisRound){
             val -= disqPenalty;
@@ -504,7 +508,7 @@ namespace ai{
         //Goal chance advantage
         auto chanceDiff = hypotheticalShotSuccessProb(state.env, mySide)
                 - hypotheticalShotSuccessProb(state.env, otherSide);
-        val += halfGoal * chanceDiff;
+        val += gameController::GOAL_POINTS * chanceDiff;
 
         return val;
     }
