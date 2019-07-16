@@ -84,6 +84,14 @@ namespace ai {
      */
     bool teamHasQuaffle(const std::shared_ptr<const gameModel::Environment> &env, const std::shared_ptr<const gameModel::Player> &player);
 
+    /**
+     * Calculates the theoretical chance of scoring a goal from the current position of the Quaffle
+     * @param env the Environment to operate on
+     * @param teamSide side of the team to attempt the shot
+     * @return highest chance of scoring a goal if a non existing player of playing for the team held the Quaffle
+     */
+    double hypotheticalShotSuccessProb(const std::shared_ptr<gameModel::Environment> &env, gameModel::TeamSide teamSide);
+
 }
 
 #endif //KI_AI_H

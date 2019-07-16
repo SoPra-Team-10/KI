@@ -357,9 +357,34 @@ namespace ai{
         return false;
     }
 
+    double hypotheticalShotSuccessProb(const std::shared_ptr<gameModel::Environment> &env, gameModel::TeamSide teamSide){
+        using namespace communication::messages::types;
+        auto id = EntityId::LEFT_CHASER1;
+        auto goals = gameModel::Environment::getGoalsRight();
+        if(teamSide == gameModel::TeamSide::RIGHT){
+            id = EntityId::RIGHT_CHASER1;
+            goals = gameModel::Environment::getGoalsLeft();
+        }
+
+        auto nonExistingPlayer = std::make_shared<gameModel::Chaser>(env->quaffle->position, Broom::FIREBOLT, id);
+        nonExistingPlayer->knockedOut = false;
+        nonExistingPlayer->isFined = false;
+
+        double highestChance = 0;
+        for(const auto &goal : goals){
+            gameController::Shot prototype(env, nonExistingPlayer, env->quaffle, goal);
+            auto success = prototype.successProb();
+            if(success > highestChance){
+                highestChance = success;
+            }
+        }
+
+        return highestChance;
+    }
+
     double simpleEval(const aiTools::State &state, gameModel::TeamSide mySide) {
-        constexpr auto inControlOfQuaffleDiscount = gameController::GOAL_POINTS / 2;
-        constexpr auto disqPenalty = 100;
+        constexpr auto halfGoal = gameController::GOAL_POINTS / 2;
+        constexpr auto disqPenalty = 1000;
         double val = 0;
         auto otherSide = mySide == gameModel::TeamSide::LEFT ? gameModel::TeamSide::RIGHT : gameModel::TeamSide::LEFT;
         //Score difference
@@ -369,14 +394,16 @@ namespace ai{
         //Eval quaffle players
         if(teamHasQuaffle(state.env, state.env->getTeam(mySide)->seeker)){
             //Holding quaffle counts as half a goal
-            val += inControlOfQuaffleDiscount;
+            val += halfGoal;
         } else if(teamHasQuaffle(state.env, state.env->getTeam(otherSide)->seeker)) {
             //Holding quaffle counts as half a goal
-            val -= inControlOfQuaffleDiscount;
+            val -= halfGoal;
         } else {
             //Calc distance advantage over opponent
-            auto myDist = std::numeric_limits<int>::max();
-            auto opponentDist = std::numeric_limits<int>::max();
+            std::vector<int> myPlayerDistances;
+            std::vector<int> opPlayerDistances;
+            myPlayerDistances.reserve(4);
+            opPlayerDistances.reserve(4);
             for(const auto &player : state.env->getAllPlayers()) {
                 bool canHoldQuaffle = INSTANCE_OF(player, gameModel::Keeper) || INSTANCE_OF(player, gameModel::Chaser);
                 if(player->isFined || player->knockedOut || !canHoldQuaffle){
@@ -384,14 +411,29 @@ namespace ai{
                 }
 
                 auto dist = gameController::getDistance(player->position, state.env->quaffle->position);
-                if(gameLogic::conversions::idToSide(player->getId()) == mySide && dist < myDist) {
-                    myDist = dist;
-                } else if(gameLogic::conversions::idToSide(player->getId()) == otherSide && dist < opponentDist) {
-                    opponentDist = dist;
+                if(gameLogic::conversions::idToSide(player->getId()) == mySide) {
+                    myPlayerDistances.emplace_back(dist);
+                } else if(gameLogic::conversions::idToSide(player->getId()) == otherSide) {
+                    opPlayerDistances.emplace_back(dist);
                 }
             }
 
-            val += std::max(std::min(opponentDist - myDist, inControlOfQuaffleDiscount), -inControlOfQuaffleDiscount);
+            std::sort(myPlayerDistances.begin(), myPlayerDistances.end());
+            std::sort(opPlayerDistances.begin(), opPlayerDistances.end());
+            if(myPlayerDistances.size() != opPlayerDistances.size()){
+                auto &smaller = myPlayerDistances.size() < opPlayerDistances.size() ? myPlayerDistances : opPlayerDistances;
+                auto &larger =  myPlayerDistances.size() < opPlayerDistances.size() ? opPlayerDistances : myPlayerDistances;
+                for(std::size_t i = 0; i < smaller.size() - larger.size(); i++){
+                    smaller.emplace_back(std::numeric_limits<int>::max());
+                }
+            }
+
+            double decay = 0.5;
+            for(std::size_t i = 0; i < myPlayerDistances.size(); i++){
+                val += std::max(std::min(opPlayerDistances[i] - myPlayerDistances[i], gameController::GOAL_POINTS), -gameController::GOAL_POINTS) * decay;
+                decay /= 2;
+            }
+
         }
 
         //Eval seeker
@@ -416,18 +458,18 @@ namespace ai{
 
             auto myDistance = gameController::getDistance(mySeeker->position, state.env->snitch->position);
             auto opDistance = gameController::getDistance(opponentSeeker->position, state.env->snitch->position);
-            auto distDiff = 2 * (opDistance - myDistance);
+            auto distDiff = 4 * (opDistance - myDistance);
 
-            if(!mySeeker->knockedOut && !opponentSeeker->knockedOut) {
-                val += std::max(std::min(distDiff, gameController::SNITCH_POINTS / 2), -gameController::SNITCH_POINTS / 2);
+            if(!mySeeker->isFined && !opponentSeeker->isFined) {
+                val += distDiff;
             }
 
-            if (mySeeker->knockedOut && !opponentSeeker->knockedOut) {
-                val -= 16 - opDistance;
+            if (mySeeker->isFined&& !opponentSeeker->isFined) {
+                val -= 32 - opDistance;
             }
 
-            if(opponentSeeker->knockedOut && !mySeeker->knockedOut) {
-                val += 16 - myDistance;
+            if(opponentSeeker->isFined && !mySeeker->isFined) {
+                val += 32 - myDistance;
             }
         }
 
@@ -444,15 +486,24 @@ namespace ai{
             }
         }
 
+        // Knockout advantage
         auto knockOutDiff = opKnockoutCount - myKnockoutCount;
         val += 2 * knockOutDiff;
 
+        // Ban advantage
         auto banDiff = state.env->getTeam(otherSide)->numberOfBannedMembers()
                 - state.env->getTeam(mySide)->numberOfBannedMembers();
-        val += 2* banDiff;
+        val += 2 * banDiff;
+
+        //Disqualification penalty
         if(state.env->getTeam(mySide)->numberOfBannedMembers() > 2 && !state.goalScoredThisRound){
             val -= disqPenalty;
         }
+
+        //Goal chance advantage
+        auto chanceDiff = hypotheticalShotSuccessProb(state.env, mySide)
+                - hypotheticalShotSuccessProb(state.env, otherSide);
+        val += halfGoal * chanceDiff;
 
         return val;
     }
