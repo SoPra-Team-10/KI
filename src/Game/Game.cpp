@@ -14,6 +14,7 @@
 constexpr unsigned int OVERTIME_INTERVAL = 3;
 constexpr unsigned int TIMEOUT_TOLERANCE = 2000;
 constexpr unsigned int MIN_SEARCH_DEPTH = 2;
+constexpr unsigned int MAX_SEARCH_DEPTH = 10;
 
 Game::Game(unsigned int difficulty, communication::messages::request::TeamConfig ownTeamConfig, util::Logging log) :
         difficulty(difficulty), myConfig(std::move(ownTeamConfig)), log(std::move(log)) {
@@ -134,6 +135,11 @@ void Game::onSnapshot(const communication::messages::broadcast::Snapshot &snapsh
 
     if(lastState.has_value()){
         generateShitTalk(snapshot, lastState.value(), currentState);
+        auto oldVal = ai::evalState(lastState->env, mySide, lastState->goalScoredThisRound);
+        auto newVal = ai::evalState(currentState.env, mySide, currentState.goalScoredThisRound);
+        if(newVal != oldVal){
+            log.debug("State value changed: " + std::to_string(oldVal) + " -> " + std::to_string(newVal));
+        }
     }
 }
 
@@ -168,15 +174,17 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
             }
 
             lastId = next.getEntityId();
-            auto [action, depth, expansions] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH);
+            auto [action, depth, expansions, score] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH, MAX_SEARCH_DEPTH);
             log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+            log.debug("Expected future state value:" + std::to_string(score));
             res = action;
             break;
         }
         case communication::messages::types::TurnType::ACTION:{
             aiTools::ActionState actionState(next.getEntityId(), aiTools::ActionState::TurnState::Action);
-            auto [action, depth, expansions] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH);
+            auto [action, depth, expansions, score] = aiTools::computeBestActionAlphaBetaID(currentState, evalFunction, actionState, abort, MIN_SEARCH_DEPTH, MAX_SEARCH_DEPTH);
             log.info("Calculated action " + std::to_string(depth) + " turns into the future. Total number of explored states: " + std::to_string(expansions));
+            log.debug("Expected future state value:" + std::to_string(score));
             res = action;
             break;
         }
@@ -399,7 +407,7 @@ void Game::generateShitTalk(const communication::messages::broadcast::Snapshot &
              "⣿⣿⣿⣿⣿⣷⣶⣤⣤⣤⣤⣤⣤⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣤⣤⣾⣿");
             break;
         case DeltaType::BLUDGER_KNOCKOUT:
-            if(gameLogic::conversions::idToSide(delta.getPassiveEntity().value()) == mySide){
+            if(gameLogic::conversions::idToSide(delta.getPassiveEntity().value()) != mySide){
                 if(delta.isSuccess().value()){
                     log.shitTalk("Immer mitten in die Fresse rein, na na na na na nana na na na na nana nana na...");
                 }
