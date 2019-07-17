@@ -502,7 +502,7 @@ namespace ai{
 
         // Ban advantage
         auto banned = state.env->getTeam(mySide)->numberOfBannedMembers();
-        val -= banned * banned * banned * gameController::GOAL_POINTS;
+        val -= banned * banned * banned * gameController::SNITCH_POINTS;
 
 
         //Disqualification penalty
