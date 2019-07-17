@@ -373,7 +373,7 @@ namespace ai{
         double highestChance = 0;
         for(const auto &goal : goals){
             if(env->quaffle->position == goal){
-                highestChance = 0.5;
+                highestChance = 1;
                 break;
             }
 
