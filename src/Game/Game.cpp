@@ -176,8 +176,17 @@ auto Game::getNextAction(const communication::messages::broadcast::Next &next, u
                     for(auto it = path.rbegin(); it != path.rend(); ++it){
                         log.debug("step to {" + std::to_string(it->x) + " | " + std::to_string(it->y) + "}");
                     }
-                    res = request::DeltaRequest{types::DeltaType::MOVE, std::nullopt, std::nullopt, std::nullopt, path.back().x,
-                                                path.back().y, player->getId(), std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+
+                    auto opSide = mySide == gameModel::TeamSide::LEFT ? gameModel::TeamSide::RIGHT : gameModel::TeamSide::LEFT;
+                    if(path.back() == currentState.env->snitch->position &&
+                        currentState.env->getTeam(mySide)->score - currentState.env->getTeam(opSide)->score < -gameController::SNITCH_POINTS){
+                        log.debug("Catching Snitch would result in defeat => Skipping turn");
+                        res = request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, player->getId(),
+                                                    std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                    } else {
+                        res = request::DeltaRequest{types::DeltaType::MOVE, std::nullopt, std::nullopt, std::nullopt, path.back().x,
+                                                    path.back().y, player->getId(), std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};
+                    }
                 } else {
                     res = request::DeltaRequest{types::DeltaType::SKIP, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, player->getId(),
                                                   std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt};

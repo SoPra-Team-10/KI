@@ -372,7 +372,16 @@ namespace ai{
 
         double highestChance = 0;
         for(const auto &goal : goals){
+            if(env->quaffle->position == goal){
+                highestChance = 0.5;
+                break;
+            }
+
             gameController::Shot prototype(env, nonExistingPlayer, env->quaffle, goal);
+            if(!prototype.isShotOnGoal()){
+                continue;
+            }
+
             auto success = prototype.successProb();
             if(success > highestChance){
                 highestChance = success;
@@ -492,14 +501,10 @@ namespace ai{
         val += 2 * knockOutDiff;
 
         // Ban advantage
-        auto banDiff = state.env->getTeam(otherSide)->numberOfBannedMembers()
-                - state.env->getTeam(mySide)->numberOfBannedMembers();
-        auto tmp = banDiff * banDiff * banDiff * banDiff;
-        if(banDiff < 0){
-            tmp *= -1;
-        }
+        auto banned = state.env->getTeam(mySide)->numberOfBannedMembers();
+        val -= banned * banned * banned * gameController::GOAL_POINTS;
 
-        val += tmp;
+
         //Disqualification penalty
         if(state.env->getTeam(mySide)->numberOfBannedMembers() > 2 && !state.goalScoredThisRound){
             val -= disqPenalty;
@@ -508,7 +513,7 @@ namespace ai{
         //Goal chance advantage
         auto chanceDiff = hypotheticalShotSuccessProb(state.env, mySide)
                 - hypotheticalShotSuccessProb(state.env, otherSide);
-        val += gameController::GOAL_POINTS * chanceDiff;
+        val += halfGoal * chanceDiff;
 
         return val;
     }
